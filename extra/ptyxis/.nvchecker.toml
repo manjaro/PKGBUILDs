@@ -1,4 +1,0 @@
-[ptyxis]
-source = "git"
-git = "https://gitlab.gnome.org/chergert/ptyxis.git"
-exclude_regex = ".*(alpha|beta|rc).*"
