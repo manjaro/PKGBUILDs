@@ -1,0 +1,42 @@
+# Maintainer: Mark Wagie <mark at manjaro dot org>
+# Contributor: Maxime Gauduin <alucryd@archlinux.org>
+
+pkgname=python-moddb
+pkgver=0.15.0
+pkgrel=0.1
+pkgdesc='A Python scraper to access ModDB mods, games and more as objects'
+arch=(any)
+url=https://github.com/ClementJ18/moddb
+license=('MIT')
+depends=(
+  python-beautifulsoup4
+  python-curl-adapter
+  python-requests
+)
+makedepends=(
+  git
+  python-build
+  python-installer
+  python-setuptools
+  python-wheel
+)
+_tag=3238889ae0f522dc5da4c4368ca351c8ea72d500
+source=(git+https://github.com/ClementJ18/moddb.git#tag=${_tag})
+b2sums=('794980c5fb2ce0a7792233b9374e52d733034dbe3a1be5527050e79b41ecf36e2ae9a82ea2e7d6e369e72adb5994c9ca666501e1259985c94eb884e3dfbc45e5')
+
+#pkgver() {
+#  cd moddb
+#  git describe --tags | sed 's/^v//'
+#}
+
+build() {
+  cd moddb
+  python -m build --wheel --no-isolation
+}
+
+package() {
+  python -m installer --destdir="${pkgdir}" moddb/dist/*.whl
+  install -Dm 644 moddb/LICENSE -t "${pkgdir}"/usr/share/licenses/python-moddb/
+}
+
+# vim: ts=2 sw=2 et:
