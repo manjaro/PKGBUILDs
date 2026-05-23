@@ -1,0 +1,70 @@
+# Maintainer: Sven-Hendrik Haase <sh@lutzhaase.com>
+# Maintainer: Roland Singer <roland@manjaro.org>
+# Maintainer: Philip Mueller <philm@manjaro.org>
+# Maintainer: FadeMind < fademind@gmail.com>
+
+### NOTE ### Forked sources have merged ALL major fixes from develop branch (https://github.com/Bumblebee-Project/Bumblebee/commits/develop)
+### Reference: https://archived.forum.manjaro.org/t/bumblebee-not-switching-back-to-igpu-after-quitting-optirun/1054/12 (DEAD LINK)
+
+pkgname=bumblebee
+pkgver=3.2.1
+pkgrel=23
+pkgdesc="NVIDIA Optimus support for Linux through Primus/VirtualGL"
+arch=('x86_64')
+depends=('kmod' 'primus' 'glib2' 'mesa-libgl')
+makedepends=('git' 'help2man')
+optdepends=('bbswitch: switch on/off discrete card'
+            'nvidia: NVIDIA kernel driver'
+            'virtualgl: alternative back-end for optirun'
+            'lib32-virtualgl: run 32bit applications with optirun'
+            'lib32-primus: faster back-end for optirun')
+url="http://www.bumblebee-project.org"
+license=("GPL-3.0-or-later")
+backup=('etc/bumblebee/bumblebee.conf'
+        'etc/bumblebee/xorg.conf.nouveau'
+        'etc/bumblebee/xorg.conf.nvidia')
+install='bumblebee.install'
+_commit=0851da6818e265d354d61947021c512f2e51ffce  # latest commit from 20170227
+source=("git+https://github.com/FadeMind/Bumblebee.git#commit=${_commit}"
+        "bumblebee.conf"
+        "bumblebee.sysusers")
+sha256sums=('99394d8fab386d38d9ec551591cd59a93d212b4a89e487b15db7018fd1b8cded'
+            '1c3d4f5d40245a23a5f1cb1f2f6bd4274ff3c5b3749f76a09255191328ae3193'
+            '1bc209c21b4f6d1975ede4091829baf98d20b33100b9d21061393880bb391fd8')
+
+build() {
+    cd "${srcdir}/Bumblebee"
+    CFLAGS+=' -fcommon' # https://wiki.gentoo.org/wiki/Gcc_10_porting_notes/fno_common
+    autoreconf -fi
+    ./configure \
+        CONF_DRIVER_MODULE_NVIDIA=nvidia \
+        CONF_LDPATH_NVIDIA=/usr/lib/nvidia:/usr/lib32/nvidia:/usr/lib:/usr/lib32 \
+        CONF_MODPATH_NVIDIA=/usr/lib/nvidia/xorg,/usr/lib/xorg/modules \
+        --prefix=/usr \
+        --sbindir=/usr/bin \
+        --with-udev-rules=/usr/lib/udev/rules.d \
+        --sysconfdir=/etc \
+        --without-pidfile
+    make
+}
+
+package() {
+    cd "${srcdir}/Bumblebee"
+
+    # Install main app
+    make install DESTDIR="$pkgdir" \
+      completiondir=/usr/share/bash-completion/completions
+
+    # Blacklist nvidia and nouveau modules
+    # Reference: https://github.com/Bumblebee-Project/Bumblebee/issues/719
+    install -Dm644 "${srcdir}/bumblebee.conf" "${pkgdir}/usr/lib/modprobe.d/bumblebee.conf"
+
+    # Install systemd unit
+    install -Dm644 "scripts/systemd/bumblebeed.service" "${pkgdir}/usr/lib/systemd/system/bumblebeed.service"
+    sed -i "s/sbin/bin/" "${pkgdir}/usr/lib/systemd/system/bumblebeed.service"
+
+    # Install udev rule to prevent GH-#144
+    install -Dm644 "conf/99-bumblebee-nvidia-dev.rules" "${pkgdir}/usr/lib/udev/rules.d/99-bumblebee-nvidia-dev.rules"
+
+    install -Dm644 "$srcdir"/bumblebee.sysusers "$pkgdir"/usr/lib/sysusers.d/$pkgname.conf
+}
