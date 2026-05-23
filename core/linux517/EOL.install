@@ -1,0 +1,16 @@
+eol() {
+  echo ">>> NOTE, 5.17.15 is the last maintenance release of the 517 kernel series."
+  echo "    This kernel is now marked 'End Of Life' (EOL)."
+  echo "    "
+  echo "    It is recommend to switch to the newer linux518 series:"
+  echo "    'sudo mhwd-kernel -i linux518'"
+  echo "    "
+}
+
+post_upgrade() {
+  eol
+}
+
+post_install() {
+  eol
+}
