@@ -1,0 +1,22 @@
+eol() {
+  echo ">>> NOTE:"
+  echo "    4.4.203 is the last maintenance release of this kernel series."
+  echo "    Linux44 is now marked EOL (End Of Life)."
+  echo "    "
+  echo "    It is recommended to update to linux515 for the LTS series"
+  echo "    or to linux516 for the current stable series."
+  echo "    "
+  echo "    Use the following commands:
+  echo "    for the newest LTS kernel:        'sudo mhwd-kernel -i linux515'"
+  echo "    or for the latest stable release: 'sudo mhwd-kernel -i linux516'"
+  echo "    "
+}
+
+post_upgrade() {
+  eol
+}
+
+post_install() {
+  eol
+}
+
