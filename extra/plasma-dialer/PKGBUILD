@@ -1,0 +1,54 @@
+# Maintainer: Danct12 <danct12@disroot.org>
+# Contributor: Furkan Kardame <tech@fkardame.com>
+# Contributor: Bhushan Shah <bhush94 at gmail dot com>
+
+pkgname=plasma-dialer
+pkgver=6.2.4
+pkgrel=1
+epoch=1
+pkgdesc="Phone Dialer for Plasma Mobile"
+arch=('aarch64' 'x86_64')
+url="https://community.kde.org/Plasma/Mobile"
+license=('GPL-3.0-or-later')
+depends=(callaudiod
+         desktop-file-utils
+         kcontacts
+         kcoreaddons
+         kdbusaddons
+         ki18n
+         kio
+         kirigami-addons
+         knotifications
+         kpeople
+         libphonenumber
+         modemmanager-qt
+         qt6-declarative
+         qtmpris)
+makedepends=(cmake
+             extra-cmake-modules
+             kdoctools
+             plasma-wayland-protocols)
+install=$pkgname.install
+source=("https://download.kde.org/stable/plasma/$pkgver/$pkgname-$pkgver.tar.xz")
+sha256sums=('b1d1c034f21ac97c30f9b12c9c998fcda264d36727d2fd46494e655ae79c8167')
+
+build() {
+  
+  # override default LDFLAGS and unset `-Wl,-z,pack-relative-relocs` to fix build
+  LDFLAGS="-Wl,-O1 -Wl,--sort-common -Wl,--as-needed -Wl,-z,relro -Wl,-z,now"
+
+  cmake -B build -S $pkgname-$pkgver \
+    -DCMAKE_BUILD_TYPE=RelWithDebInfo \
+		-DCMAKE_INSTALL_PREFIX=/usr \
+    -DCMAKE_INSTALL_LIBEXECDIR=lib \
+    -Wno-dev
+  cmake --build build
+}
+
+check() {
+  ctest --test-dir build --output-on-failure
+}
+
+package() {
+  DESTDIR="$pkgdir" cmake --install build
+}
