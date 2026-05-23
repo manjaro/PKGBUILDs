@@ -1,0 +1,37 @@
+# Maintainer : Philip Müller <philm@manjaro.org>
+# Maintainer: Bernhard Landauer <bernhard@manjaro.org>
+# Contributor: DAC324
+# Contributor : maoxuner <maoxuner at 126 dot com>
+# Contributor : Sébastien Deligny <sebdeligny at gmail>
+# Contributor : Rob McCathie <korrode at gmail>
+# Contributor: SpepS <dreamspepser at yahoo dot it>
+# Contributor: vinz <vinz@archlinux.us>
+# Contributor: Aurélien DESBRIÈRES <ice.cube@gmx.com>
+# Contributor: Daniel Jenssen <daerandin@gmail.com>
+
+pkgname=thunar-shares-plugin
+pkgver=0.3.2
+pkgrel=1
+pkgdesc="Quickly share a folder using Samba from Thunar"
+arch=('x86_64')
+url="https://docs.xfce.org/xfce/thunar/thunar-shares-plugin"
+license=('GPL2')
+depends=('samba' 'thunar')
+makedepends=('xfce4-dev-tools')
+optdepends=('manjaro-settings-samba: Preconfigured Samba settings')
+provides=("$pkgname.so")
+conflicts=("$pkgname-manjaro" "$pkgname-gtk")
+replaces=("$pkgname-manjaro" "$pkgname-gtk")
+source=("https://archive.xfce.org/src/thunar-plugins/thunar-shares-plugin/0.3/$pkgname-$pkgver.tar.bz2")
+sha256sums=('1009d5e6c91534fa49a69090c53c54ab9da2e0428d08d8e687528f63a4ac3f07')
+
+build() {
+  cd "$pkgname-$pkgver"
+  ./configure --prefix="$(pkg-config --variable prefix thunarx-3)"
+  make
+}
+
+package() {
+  cd "$pkgname-$pkgver"
+  make DESTDIR="$pkgdir" install
+}
