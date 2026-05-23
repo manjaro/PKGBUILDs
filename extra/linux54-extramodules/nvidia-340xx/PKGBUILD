@@ -1,0 +1,75 @@
+# Maintainer: Philip Müller <philm[at]manjaro[dot]org>
+# Maintainer: Bernhard Landauer <bernhard[at]manjaro[dot]org>
+# Maintainer: Helmut Stult <helmut[at]manjaro[dot]org>
+
+# Arch credits:
+# Maintainer : Thomas Baechler <thomas@archlinux.org>
+
+_linuxprefix=linux54
+_extramodules=extramodules-5.4-MANJARO
+# don't edit here
+pkgver=340.108
+
+_nver=340
+# edit here for new version
+_sver=108
+# edit here for new build
+pkgrel=80
+pkgname=$_linuxprefix-nvidia-${_nver}xx
+_pkgname=nvidia
+_pkgver="${_nver}.${_sver}"
+pkgdesc="NVIDIA drivers for linux."
+arch=('x86_64')
+url="http://www.nvidia.com/"
+depends=("$_linuxprefix" "nvidia-340xx-utils=${_pkgver}")
+makedepends=("$_linuxprefix-headers")
+groups=("$_linuxprefix-extramodules")
+provides=("nvidia=$pkgver")
+conflicts=("$_linuxprefix-nvidia-390xx" "$_linuxprefix-nvidia-418xx" "$_linuxprefix-nvidia-430xx"
+           "$_linuxprefix-nvidia-435xx" "$_linuxprefix-nvidia-440xx" "$_linuxprefix-nvidia-450xx")
+license=('custom')
+install=nvidia.install
+options=(!strip)
+durl="http://us.download.nvidia.com/XFree86/Linux-x86"
+source=("${durl}_64/${_pkgver}/NVIDIA-Linux-x86_64-${_pkgver}-no-compat32.run"
+        '340.108-build-fix.patch')
+sha256sums=('995d44fef587ff5284497a47a95d71adbee0c13020d615e940ac928f180f5b77'
+            '2b7e3ef24846a40f4492e749be946e4f7f70ebed054bc2c9079f6cbdcbfabe57')
+
+_pkg="NVIDIA-Linux-x86_64-${_pkgver}-no-compat32"
+
+pkgver() {
+  printf '%s' "${_pkgver}"
+}
+
+prepare() {
+    sh "${_pkg}.run" --extract-only
+    cd "${_pkg}"
+    # patches here
+
+    # Fix compile issues
+    msg2 "PATCH: 340.108-build-fix"
+    (cd kernel; patch -p1 --no-backup-if-mismatch -i "$srcdir"/340.108-build-fix.patch)
+
+    export DISTCC_DISABLE=1
+    export CCACHE_DISABLE=1
+}
+
+build() {
+    _kernver="$(cat /usr/lib/modules/${_extramodules}/version)"
+
+    cd "${_pkg}"/kernel
+    make SYSSRC=/usr/lib/modules/"${_kernver}/build" module
+
+    cd uvm
+    make SYSSRC=/usr/lib/modules/"${_kernver}/build" module
+}
+
+package() {
+    install -D -m644 "${srcdir}/${_pkg}/kernel/nvidia.ko" \
+        "${pkgdir}/usr/lib/modules/${_extramodules}/nvidia.ko"
+    install -D -m644 "${srcdir}/${_pkg}/kernel/uvm/nvidia-uvm.ko" \
+        "${pkgdir}/usr/lib/modules/${_extramodules}/nvidia-uvm.ko"
+    gzip "${pkgdir}/usr/lib/modules/${_extramodules}/"*.ko
+    sed -i -e "s/EXTRAMODULES='.*'/EXTRAMODULES='${_extramodules}'/" "${startdir}/nvidia.install"
+}
