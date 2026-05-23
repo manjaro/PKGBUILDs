@@ -1,0 +1,41 @@
+# Contributor: Bernhard Landauer <oberon@manjaro.org>
+
+pkgname=vibrancy-icons-teal
+pkgver=2.7
+pkgrel=2
+pkgdesc="Regular and Teal versions of the Vibrancy icon theme"
+arch=('any')
+url="https://www.ravefinity.com/p/vibrancy-colors-gtk-icon-theme.html"
+license=('CC-BY-SA-3.0 AND GPL-2.0-or-later AND GPL-3.0-or-later')
+options=('!strip')
+source=("https://www.dropbox.com/s/sealvky0fzusfix/Vibrancy-Colors-GTK-Icon-Theme-v-2-7.tar.gz")
+sha256sums=('89835f23ee6ada9039f78bb9df4a57ae06c2cbb26d10cfab77a6e8d097e274e8')
+
+package() {
+  target="$pkgdir"/usr/share/icons
+
+  themes=(
+    Vibrancy-Colors
+    Vibrancy-Colors-Dark
+    Vibrancy-Colors-Full-Dark
+    Vibrancy-Colors-NonMono-Dark
+    Vibrancy-Colors-NonMono-Light
+    Vibrancy-Dark-Teal
+    Vibrancy-Full-Dark-Teal
+    Vibrancy-Light-Teal
+    Vibrancy-NonMono-Dark-Teal
+    Vibrancy-NonMono-Light-Teal
+  )
+
+  install -d "${target}"
+  for theme in ${themes[@]}; do
+    cp -r "${theme}" "${target}"
+  done
+
+  # fix pamac-updater icon 16px
+  cd "${target}"
+  for theme in ${themes[@]:1}; do
+    install -Dm644 "${themes[0]}"/apps/16/system-software-update.png \
+    "${theme}"/apps/16/system-software-update.png
+  done
+}
