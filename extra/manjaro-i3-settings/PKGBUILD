@@ -1,0 +1,61 @@
+# Maintainer: Mark Wagie <mark at manjaro dot org>
+# Contributor: Bernhard Landauer <oberon@manjaro.org>
+
+pkgname=manjaro-i3-settings
+pkgver=20260221
+pkgrel=1
+epoch=1
+arch=('any')
+url="https://gitlab.manjaro.org/profiles-and-settings/desktop-settings"
+license=('GPL-3.0-or-later')
+groups=('i3-manjaro')
+pkgdesc='Manjaro Linux i3 settings'
+depends=(
+  'adapta-maia-theme'
+  'breeze-cursors5'
+  'conky-i3'
+  'dmenu-manjaro'
+  'dunst'
+  'gsfonts'
+  'i3-default-artwork'
+  'i3exit'
+  'i3-scripts'
+  'i3-scrot'
+  'i3-gaps'
+  'i3-help'
+  'i3status'
+  'manjaro-base-skel'
+  'ttf-terminus-nerd'
+  'nitrogen'
+  'papirus-maia-icon-theme'
+  'picom'
+  'qt5ct'
+  'qt6ct'
+  'urxvt-perls'
+  'xorg-fonts-misc'
+  'xorg-mkfontscale'
+  'xorg-xset'
+)
+makedepends=('git')
+optdepends=(
+  'artwork-i3: Manjaro-i3 wallpapers'
+  'manjaro-backgrounds: Collection of Manjaro wallpapers'
+)
+provides=('manjaro-desktop-settings')
+conflicts=('manjaro-desktop-settings')
+replaces=('manjaro-i3-settings-dev')
+_commit=c75a447ba1e85d0e238c8ea8a231230185e3a6e9
+source=("git+https://gitlab.manjaro.org/profiles-and-settings/desktop-settings.git#commit=${_commit}")
+sha256sums=('719775159bbad7a32f51e30af0ef5891b35db9fd7d69e7bb92f352464e4948a0')
+
+pkgver() {
+  cd desktop-settings
+  printf "$(git show -s --format=%cd --date=format:%Y%m%d HEAD)"
+}
+
+package() {
+  cd desktop-settings
+  install -d "$pkgdir"/etc
+  cp -r community/i3/skel "$pkgdir"/etc
+  install -Dm644 community/i3/schemas/* -t "$pkgdir"/usr/share/glib-2.0/schemas/
+}
