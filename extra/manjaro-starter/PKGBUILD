@@ -1,0 +1,83 @@
+# Maintainer: Mark Wagie <mark at manjaro dot org>
+
+pkgname=manjaro-starter
+pkgver=0.33.0
+pkgrel=2
+pkgdesc="A tool providing access to documentation and support for new Manjaro users."
+arch=('x86_64' 'aarch64')
+url="https://github.com/oguzkaganeren/manjaro-starter"
+license=('GPL-3.0-or-later')
+depends=(
+  'gtk3'
+  'libayatana-appindicator'
+  'pacman-mirrors'
+  'pamac-gtk'
+  'papirus-icon-theme'
+  'webkit2gtk'
+)
+makedepends=(
+  'cargo'
+  'git'
+  'node-gyp'
+  'yarn'
+)
+optdepends=(
+  'gnome-layout-switcher: Change desktop layout on GNOME'
+  'manjaro-settings-manager: Advanced configuration'
+)
+_commit=cad470c51495ee4521c5e6dc3b72ab66ea2e0239  # tags/v0.33.0^0
+source=("git+https://github.com/oguzkaganeren/manjaro-starter.git#commit=${_commit}")
+sha256sums=('SKIP')
+
+pkgver() {
+  cd "$pkgname"
+  git describe --tags | sed 's/^v//;s/-/+/g'
+}
+
+prepare() {
+  cd "$pkgname"
+  export YARN_CACHE_FOLDER="$srcdir/yarn-cache"
+  export CARGO_HOME="$srcdir/cargo-home"
+  export RUSTUP_TOOLCHAIN=stable
+
+  # yarn.lock is used
+  rm -f package-lock.json
+
+  yarn install
+
+  mkdir -p build
+
+  cd src-tauri
+  cargo fetch --target "$CARCH-unknown-linux-gnu"
+
+  # Don't bundle AppImage
+  sed -i 's/"targets": "all",/"targets": "deb",/g' tauri.conf.json
+}
+
+build() {
+  cd "$pkgname"
+  CFLAGS+=" -ffat-lto-objects"
+  export YARN_CACHE_FOLDER="$srcdir/yarn-cache"
+  export CARGO_HOME="$srcdir/cargo-home"
+  export RUSTUP_TOOLCHAIN=stable
+  yarn build
+  yarn bundle
+}
+
+package() {
+  cd "$pkgname"
+  install -Dm755 "src-tauri/target/release/$pkgname" -t "$pkgdir/usr/bin/"
+
+  for i in 32x32 128x128 128x128@2x; do
+    install -Dm644 src-tauri/icons/${i}.png \
+      "$pkgdir/usr/share/icons/hicolor/${i}/apps/$pkgname.png"
+  done
+  install -Dm644 src-tauri/icons/icon.png \
+    "$pkgdir/usr/share/icons/hicolor/512x512/apps/$pkgname.png"
+
+  install -Dm644 "src-tauri/resources/$pkgname.desktop" -t \
+    "$pkgdir/usr/share/applications/"
+
+  install -Dm644 "src-tauri/resources/$pkgname.desktop" -t \
+    "$pkgdir/usr/lib/$pkgname/resources/"
+}
