@@ -1,4 +1,0 @@
-[tlpui]
-source = "git"
-git = "https://github.com/d4nj1/TLPUI.git"
-prefix = "tlpui-"
