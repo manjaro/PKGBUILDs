@@ -1,0 +1,42 @@
+# Maintainer: Philip Mueller <philm@manjaro.org>
+# Contributor: Mark Wagie <mark at manjaro dot org>
+# Contributor: Dennis ten Hoove <dennis@manjaro.org>
+
+pkgname=arkdep
+_pkgver=2025.12.18
+pkgver=${_pkgver//./}
+pkgrel=1
+pkgdesc="Toolkit for building, deploying and maintaining a btrfs-based multi-root system"
+url="https://github.com/arkanelinux/arkdep"
+arch=('any')
+license=('GPL-3.0-or-later')
+depends=(
+  'arch-install-scripts'
+  'btrfs-progs'
+  'curl'
+  'diffutils'
+  'dracut'
+  'gnupg'
+  'systemd'
+  'wget'
+)
+makedepends=('git')
+source=("git+https://github.com/arkanelinux/arkdep.git#tag=${_pkgver}"
+        'manjaro.patch')
+sha256sums=('4b2d5242eaec0b7b3dab576134c59c6e6316c38c0037a4b17e0a14626940c8b9'
+            'ab7360ec0c6fdfac39f3f7c039711876a2fac122907fa621136311476bcadeec')
+
+prepare() {
+  cd "$pkgname"
+  patch -p1 -i ../manjaro.patch
+}
+
+package() {
+  cd "$pkgname"
+  install -Dm755 "$pkgname" "$pkgname-build" -t "$pkgdir/usr/bin/"
+
+  install -d "$pkgdir/etc/$pkgname"
+  cp -rv "$pkgname"-build.d/* "$pkgdir/etc/$pkgname/"
+
+  install -Dm644 doc/"$pkgname"{.8,-build.8} -t "$pkgdir/usr/share/man/man8/"
+}
