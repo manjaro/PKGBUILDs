@@ -1,0 +1,287 @@
+# Maintainer: Bernhard Landauer <oberon@manjaro.org
+# Archlinux-Maintainer
+
+pkgbase=linux613-rt
+pkgname=("$pkgbase" "$pkgbase-headers")
+_basekernel=6.13
+_sub=0
+_rtpatchver=rt5
+_basever=${pkgbase//linux}
+_kernelname=-MANJARO
+if [[ "$_sub" == "0" ]]; then
+    _pkgver=${_basekernel}
+else
+    _pkgver=${_basekernel}.${_sub}
+fi
+pkgver=6.13_rt5
+pkgrel=4
+arch=('x86_64')
+url="https://www.kernel.org/"
+license=('GPL2')
+makedepends=(bc docbook-xsl libelf pahole python-sphinx git inetutils kmod xmlto cpio perl tar xz)
+options=('!strip')
+source=("$url/pub/linux/kernel/v6.x/linux-${_basekernel}.tar.xz"
+        # rt-config
+        'config.rt'
+        # Upstream Patches
+        ee2ab467bddfb2d7f68d996dbab94d7b88f8eaf7.patch
+        8ba14d9f490aef9fd535c04e9e62e1169eb7a055.patch
+        # ARCH Patches
+        0101-ZEN_Add_sysctl_and_CONFIG_to_disallow_unprivileged_CLONE_NEWUSER.patch
+        0102-drivers-firmware-skip-simpledrm-if-nvidia-drm.modese.patch
+        0103_default_to_max_ASLR_bits.patch
+        # Realtek patch
+        0999-patch_realtek.patch
+        # ROG ALLY Patches (wip/ally-6.12)
+        0001-Input-xpad-add-support-for-ASUS-ROG-RAIKIRI-PRO.patch
+        0002-platform-x86-asus-wmi-don-t-fail-if-platform_profile.patch
+        0003-platform-x86-asus-wmi-Refactor-Ally-suspend-resume.patch
+        0004-platform-x86-asus-wmi-export-symbols-used-for-read-w.patch
+        0005-hid-asus-Add-MODULE_IMPORT_NS-ASUS_WMI.patch
+        0006-platform-x86-asus-armoury-move-existing-tunings-to-a.patch
+        0007-platform-x86-asus-armoury-add-panel_hd_mode-attribut.patch
+        0008-platform-x86-asus-armoury-add-the-ppt_-and-nv_-tunin.patch
+        0009-platform-x86-asus-armoury-add-dgpu-tgp-control.patch
+        0010-platform-x86-asus-armoury-add-apu-mem-control-suppor.patch
+        0011-platform-x86-asus-armoury-add-core-count-control.patch
+        0012-platform-x86-asus-wmi-deprecate-bios-features.patch
+        0013-hid-asus-ally-Add-joystick-LED-ring-support.patch
+        0014-hid-asus-ally-initial-Ally-X-gamepad.patch
+        0015-hid-asus-ally-initial-gamepad-configuration.patch
+        0016-hid-asus-ally-add-button-remap-attributes.patch
+        0017-hid-asus-ally-add-gamepad-mode-selection.patch
+        0018-hid-asus-ally-Turbo-settings-for-buttons.patch
+        0019-hid-asus-ally-add-vibration-intensity-settings.patch
+        0020-hid-asus-ally-add-JS-deadzones.patch
+        0021-hid-asus-ally-add-trigger-deadzones.patch
+        0022-hid-asus-ally-add-anti-deadzones.patch
+        0023-hid-asus-ally-add-JS-response-curves.patch
+        0024-hid-asus-ally-add-calibrations-wip.patch
+        0025-debug-by-default.patch
+        0026-hid-asus-Disable-OOBE-mode-on-the-ProArt-P16.patch
+        # OrangePi Neo patches
+        0001-iio_imu_Add_driver_for_Bosch_BMI260_IMU.patch
+        "$url/pub/linux/kernel/projects/rt/${_basekernel}/patch-${_pkgver}-${_rtpatchver}.patch.xz")
+
+_srcdir="linux-${_basekernel}"
+
+sha256sums=('e79dcc6eb86695c6babfb07c2861912b635d5075c6cd1cd0567d1ea155f80d6e'
+            'fcf54a616bde2350a57e019d6b8a313487ac70d9c391c6099909fe235ac252be'
+            '7346cd0ec60d1ff260a8e366c8f8395d215b0bb737b78447262726a6570f7d84'
+            '4aaadda38c63785afedbe3a382a7f50639828899143560c185dd293a044a31b4'
+            '888a89ec67433ddfd71ba187a7356ca60270dbe51d6df7211e3930f13121ba8c'
+            '934bc233684c45860251bb75433d671b23fa784c891ab3a1ef10d5bc761156b6'
+            '6400a06e6eb3a24b650bc3b1bba9626622f132697987f718e7ed6a5b8c0317bc'
+            'b88d42565ce771cb6c8f98b7c05aada6b8024578a1985e5772dc5a2d07facee0'
+            '5e32145dd415ae9c3e8d43ec47bbbeb59b5247ca6572b6798aa5c32b7908f193'
+            '1b47b58f2fb6ba0cabdd7bc8eee7147b2590e5363e4c4690b7d9d5346f8208d1'
+            'd2a778cc2bd82962817088a9ae870a8d5a3bcb37f4c5127e6f53251f7a6b32db'
+            '095241847ac54b2d9e0c05ce3d58058b8fd50f7e19ef94e729118d4812c61e7e'
+            '0d9321ecfd8e17116cb537f97480084594179a70d88b6ad7a2db52093460fc45'
+            '2a970c80767ea9785fa79620198ed599bb8be08297b16d9920baa6a1dffa605a'
+            'bf89dfdda0689c64fe7aec69a2360a50be46d39f7097fd36df081c2ad24bad8c'
+            'a613eba8d0d099f81eb3b03183c5c9c8ecd38c82a987d3073394cddb691295e9'
+            '7985c9e66d5c8a65adaac502fa42ff55cac761b8053aaa9032a6f53aec8db584'
+            'dba5b7c464c1c0cd67f27d8d987cdecf1635991d680cd585fae542b7052d3e44'
+            '88513eb5738e1af25ccbfebad7834cf98ec6a21a6b44d83851f1df121819703e'
+            '1f30f04dcf229df554794eb2b253aef2dfd4ee5600ed0a25b641da171838432a'
+            '772d313e326060f22ddbd05c32cd194c40aa58f576f2ce17cc20af933cc72b91'
+            '09abba527d4c1a52bd6f7dd990ce8beb13b0f9a0297c6e01f2099bd4595f1518'
+            'd0739fb9856f8189bb696bde324825b4ac5df83cce5be231379049680c273c77'
+            '49d0427fd5be582a6f431b9cf687429667c226d6ca2554e702e67393299fa487'
+            'a5daa3227313b0e23cd865ecd4f7cda05948efbeb359102e968055ce0f5296e6'
+            '6bc3b7f5d1772d50e0ffdb63d44653c3bc8e29c2caa7e8049e7436d5ddc02a21'
+            'bbae57fe2132a1c28ec7359a39b00ea412db45f751646cb6a1ac72cf807cb23c'
+            '82a9df1c8688067477fee06177641aa433074ff43cd6683966732d0ca2b7d931'
+            '3aa1e4ba8a5301e41ccf1fb1c2fe5b4a8faae59b065704371412bf340eb4fbe2'
+            '5cb023f65fb40deec3e33e0edc1caddc1e67ab00d5e179cc65d21605ce47df18'
+            '2219e71c5fbe30c80845941c6395272c8391a233a33c0be845eb46c89aaa8a48'
+            '8f10820fd56891278e1f275ebb4ed8628e9ea1fb1daee3b39d175148682d22b5'
+            'e387960b502a33629b295c02cbbc0d08d9ac32979da2cb57ab44e55c36a22616'
+            'f8534cded0b89ed96e0daa3fc99507f6912ddfbeeba61ce69fde230344b1bdcf'
+            '14278fdc353e6ab5abc9c1a6b753221df12c9a0e6a8d9fec8baf81d7897a6a4b'
+            'd205ee4775a24dd20777056d3bacec42b73bef38c21f8b677ea6e1a6f5677aa3')
+if [[ ! "$_sub" == "0" ]]; then
+  source+=("$url/pub/linux/kernel/v6.x/patch-${_pkgver}.xz")
+fi
+validpgpkeys=('64254695FFF0AA4466CC19E67B96E8162A8CF5D1' # Sebastian Andrzej Siewior
+            '4FE5E3262872E4CC')
+pkgver() {
+  echo "${_pkgver}_${_rtpatchver}"
+}
+
+prepare() {
+  cd "$_srcdir"
+
+if [[ ! "$_sub" == "0" ]]; then
+  # add upstream patch
+  patch -p1 -i "../patch-${_pkgver}"
+fi
+
+  # Add RT patch
+  msg "realtime patch..."
+  patch -p1 -i "../patch-${_pkgver}-${_rtpatchver}.patch"
+
+  local src
+  for src in "${source[@]}"; do
+      src="${src%%::*}"
+      src="${src##*/}"
+      [[ $src = *.patch ]] || continue
+      msg2 "Applying patch: $src..."
+      patch -Np1 < "../$src"
+  done
+
+  msg2 "add config"
+  cat "../config.rt" > ./.config
+
+  if [ "${_kernelname}" != "" ]; then
+    sed -i "s|CONFIG_LOCALVERSION=.*|CONFIG_LOCALVERSION=\"${_kernelname}\"|g" ./.config
+    sed -i "s|CONFIG_LOCALVERSION_AUTO=.*|CONFIG_LOCALVERSION_AUTO=n|" ./.config
+  fi
+
+  msg "set extraversion to pkgrel"
+  sed -ri "s|^(EXTRAVERSION =).*|\1 -${pkgrel}|" Makefile
+
+  msg "don't run depmod on 'make install'"
+  # We'll do this ourselves in packaging
+  sed -i '2iexit 0' scripts/depmod.sh
+
+  msg "get kernel version"
+  make prepare
+
+  msg "rewrite configuration"
+  yes "" | make config >/dev/null
+}
+
+build() {
+  cd "$_srcdir"
+
+  msg "build"
+  make ${MAKEFLAGS} LOCALVERSION= bzImage modules
+}
+
+package_linux613-rt() {
+  pkgdesc="The ${pkgbase/linux/Linux} kernel and modules"
+  depends=(
+    'coreutils'
+    'initramfs'
+    'kmod'
+  )
+  optdepends=(
+    'linux-firmware: firmware images needed for some devices'
+    'scx-scheds: to use sched-ext schedulers'
+    'wireless-regdb: to set the correct wireless channels of your country'
+  )
+  provides=("linux=${pkgver}" VIRTUALBOX-GUEST-MODULES WIREGUARD-MODULE KSMBD-MODULE)
+
+  cd "$_srcdir"
+
+  # get kernel version
+  _kernver="$(make LOCALVERSION= kernelrelease)"
+
+  mkdir -p "${pkgdir}"/{boot,usr/lib/modules}
+  ZSTD_CLEVEL=19 make LOCALVERSION= INSTALL_MOD_PATH="${pkgdir}/usr" \
+  INSTALL_MOD_STRIP=1 modules_install
+
+  # systemd expects to find the kernel here to allow hibernation
+  # https://github.com/systemd/systemd/commit/edda44605f06a41fb86b7ab8128dcf99161d2344
+  cp arch/x86/boot/bzImage "${pkgdir}/usr/lib/modules/${_kernver}/vmlinuz"
+
+  # Used by mkinitcpio to name the kernel
+  echo "${pkgbase}" | install -Dm644 /dev/stdin "${pkgdir}/usr/lib/modules/${_kernver}/pkgbase"
+  echo "${_basekernel}-rt-${CARCH}" | install -Dm644 /dev/stdin "${pkgdir}/usr/lib/modules/${_kernver}/kernelbase"
+
+  # add kernel version
+  echo "${_pkgver}-${_rtpatchver}-${pkgrel}-MANJARO x64" > "${pkgdir}/boot/${pkgbase}-${CARCH}.kver"
+
+  # remove build link
+  rm "${pkgdir}"/usr/lib/modules/${_kernver}/build
+
+  # now we call depmod...
+  depmod -b "${pkgdir}/usr" -F System.map "${_kernver}"
+}
+
+package_linux613-rt-headers() {
+  pkgdesc="Header files and scripts for building modules for ${pkgbase/linux/Linux} kernel"
+  depends=('gawk' 'python' 'libelf' 'pahole')
+  provides=("linux-headers=$pkgver")
+
+  cd "$_srcdir"
+  local _builddir="${pkgdir}/usr/lib/modules/${_kernver}/build"
+
+  # add real version for building modules and running depmod from hook
+  echo "${_kernver}" |
+    install -Dm644 /dev/stdin "${_builddir}/version"
+
+  install -Dt "${_builddir}" -m644 Makefile .config Module.symvers
+  install -Dt "${_builddir}/kernel" -m644 kernel/Makefile
+  install -Dt "${_builddir}" -m644 vmlinux
+
+  mkdir "${_builddir}/.tmp_versions"
+
+  cp -t "${_builddir}" -a include scripts
+
+  install -Dt "${_builddir}/arch/x86" -m644 "arch/x86/Makefile"
+  install -Dt "${_builddir}/arch/x86/kernel" -m644 "arch/x86/kernel/asm-offsets.s"
+
+  cp -t "${_builddir}/arch/x86" -a "arch/x86/include"
+
+  install -Dt "${_builddir}/drivers/md" -m644 drivers/md/*.h
+  install -Dt "${_builddir}/net/mac80211" -m644 net/mac80211/*.h
+
+  # https://bugs.archlinux.org/task/13146
+  install -Dt "${_builddir}/drivers/media/i2c" -m644 drivers/media/i2c/msp3400-driver.h
+
+  # https://bugs.archlinux.org/task/20402
+  install -Dt "${_builddir}/drivers/media/usb/dvb-usb" -m644 drivers/media/usb/dvb-usb/*.h
+  install -Dt "${_builddir}/drivers/media/dvb-frontends" -m644 drivers/media/dvb-frontends/*.h
+  install -Dt "${_builddir}/drivers/media/tuners" -m644 drivers/media/tuners/*.h
+
+  # https://bugs.archlinux.org/task/71392
+  install -Dt "${_builddir}/drivers/iio/common/hid-sensors" -m644 drivers/iio/common/hid-sensors/*.h
+
+  # add xfs and shmem for aufs building
+  mkdir -p "${_builddir}"/{fs/xfs,mm}
+
+  # copy in Kconfig files
+  find . -name Kconfig\* -exec install -Dm644 {} "${_builddir}/{}" \;
+
+  # add objtool for external module building and enabled VALIDATION_STACK option
+  install -Dt "${_builddir}/tools/objtool" tools/objtool/objtool
+
+  # https://forum.manjaro.org/t/90629/39
+  install -Dt "${_builddir}/tools/bpf/resolve_btfids" tools/bpf/resolve_btfids/resolve_btfids
+
+  # remove unneeded architectures
+  local _arch
+  for _arch in "${_builddir}"/arch/*/; do
+    [[ ${_arch} == */x86/ ]] && continue
+    rm -r "${_arch}"
+  done
+
+  # remove documentation files
+  rm -r "${_builddir}/Documentation"
+
+  # strip scripts directory
+  local file
+  while read -rd '' file; do
+    case "$(file -bi "$file")" in
+      application/x-sharedlib\;*)      # Libraries (.so)
+        strip $STRIP_SHARED "$file" ;;
+      application/x-archive\;*)        # Libraries (.a)
+        strip $STRIP_STATIC "$file" ;;
+      application/x-executable\;*)     # Binaries
+        strip $STRIP_BINARIES "$file" ;;
+      application/x-pie-executable\;*) # Relocatable binaries
+        strip $STRIP_SHARED "$file" ;;
+    esac
+  done < <(find "${_builddir}" -type f -perm -u+x ! -name vmlinux -print0 2>/dev/null)
+  strip $STRIP_STATIC "${_builddir}/vmlinux"
+
+  echo "Adding symlink..."
+  mkdir -p "${pkgdir}/usr/src"
+  ln -sr "${_builddir}" "${pkgdir}/usr/src/${pkgbase}"
+
+  # remove unwanted files
+  find ${_builddir} -name '*.orig' -delete
+}
