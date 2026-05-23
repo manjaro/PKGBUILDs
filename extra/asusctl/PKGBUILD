@@ -1,0 +1,83 @@
+# Maintainer: Mark Wagie <mark at manjaro dot org>
+# Contributor: Fabian Bornschein <fabiscafe@archlinux.org>
+# Contributor: Static_Rocket
+
+pkgbase=asusctl
+pkgname=(
+  asusctl
+  rog-control-center
+)
+pkgver=6.3.7
+pkgrel=1
+pkgdesc="A control daemon, tools, and a collection of crates for interacting with ASUS ROG laptops"
+arch=('x86_64')
+url="https://asus-linux.org"
+license=('MPL-2.0')
+makedepends=(
+  'clang'
+  'cmake'
+  'fontconfig'
+  'git'
+  'hicolor-icon-theme'
+  'libayatana-appindicator'
+  'libinput'
+  'libusb'
+  'rust'
+  'seatd'
+  'systemd'
+)
+source=("git+https://gitlab.com/asus-linux/asusctl.git#tag=$pkgver")
+sha256sums=('88f9fd75389dbb57f0a9dadb7a4c918e7abd1713f0826c28fe8f919c8e70836d')
+
+prepare() {
+  cd "${pkgbase}"
+  cargo fetch --locked --target host-tuple
+}
+
+build() {
+  cd "${pkgbase}"
+  make FROZEN=1 build
+}
+
+package_asusctl() {
+  pkgdesc="${pkgdesc/tools/CLI tools}"
+  depends=(
+    'glibc'
+    'hicolor-icon-theme'
+    'libgcc'
+    'libusb'
+    'systemd'
+    'systemd-libs'
+  )
+  optdepends=(
+    'acpi_call: fan control'
+    'rog-control-center: app to control asusctl'
+    'supergfxctl: hybrid GPU control'
+  )
+  conflicts=('gnome-shell-extension-asusctl-gnome')
+  install="${pkgbase}.install"
+
+  cd "${pkgbase}"
+  make DESTDIR="${pkgdir}" install-asusd install-asus-shutdown install-asusctl \
+    install-asusd_user install-data-asusd install-data-asusd_user
+}
+
+package_rog-control-center() {
+  pkgdesc="App to control asusctl"
+  depends=(
+    'asusctl'
+    'fontconfig'
+    'freetype2'
+    'glibc'
+    'hicolor-icon-theme'
+    'libayatana-appindicator'
+    'libgcc'
+    'libinput'
+    'libxkbcommon'
+    'seatd'
+    'systemd-libs'
+  )
+
+  cd "${pkgbase}"
+  make DESTDIR="${pkgdir}" install-rog_gui install-data-rog_gui
+}

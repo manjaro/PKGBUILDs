@@ -1,0 +1,20 @@
+post_install() {
+  systemctl enable --now asusd.service
+  printf ":: See https://gitlab.com/asus-linux/asusctl#kernel-support.\n"
+  printf ":: for latest required kernel patches/versions\n"
+}
+
+post_upgrade() {
+  if systemctl is-active asusd.service --quiet
+    then
+      printf ":: asusd service will be restarted…\n"
+      systemctl daemon-reload
+      systemctl restart asusd.service
+  fi
+  printf ":: See https://gitlab.com/asus-linux/asusctl#kernel-support.\n"
+  printf ":: for latest required kernel patches/versions\n"
+}
+
+pre_remove() {
+  systemctl disable --now asusd.service
+}
