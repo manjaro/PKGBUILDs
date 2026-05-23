@@ -1,0 +1,31 @@
+# Maintainer: Vitor Lopes
+
+pkgname=python-manjaro-sdk
+pkgver=0.1.1
+pkgrel=1
+epoch=1
+pkgdesc="Manjaro SDK, Python library for easy access to any Manjaro tools or Libs."
+arch=('any')
+url="https://github.com/Manjaro-WebDad/libmanjaro"
+license=('GPL')
+depends=('gtk3' 'libpamac' 'lsb-release' 'mhwd' 'pacman-mirrors' 'python'
+         'python-gobject' 'python-systemd')
+makedepends=('git' 'python-build' 'python-installer' 'python-setuptools' 'python-wheel')
+_commit=8b8220405b15321bbd80d402202752166c891bfd
+source=("git+https://github.com/Manjaro-WebDad/libmanjaro.git#commit=${_commit}")
+sha256sums=('SKIP')
+
+pkgver() {
+  cd libmanjaro
+  python setup.py --version
+}
+
+build() {
+  cd libmanjaro
+  python -m build --wheel --no-isolation
+}
+
+package() {
+  cd libmanjaro
+  python -m installer --destdir="$pkgdir" dist/*.whl
+}
