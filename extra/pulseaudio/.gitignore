@@ -1,0 +1,4 @@
+fix_ladspa_sink_search_path.patch
+pkg/*
+pulseaudio/*
+src/*
