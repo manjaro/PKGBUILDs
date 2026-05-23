@@ -1,0 +1,44 @@
+# Maintainer: FH <fhatmanjaroorg>
+# Maintainer: Bernhard Landauer <bernhard@manjaro.org>
+
+pkgname=crossover-extras
+pkgver=1.0
+pkgrel=6
+pkgdesc="Meta package to install all optional dependencies for CrossOver Linux."
+arch=('any')
+license=('MIT')
+depends=(
+    'crossover'
+    'lib32-fontconfig'
+    'lib32-gcc-libs'
+    'lib32-glu'
+    'lib32-gmp'
+    'lib32-gnutls'
+    'lib32-krb5'
+    'lib32-lcms2'
+    'lib32-libcups'
+    'lib32-libdbus'
+    'lib32-libldap'
+    'lib32-libtiff'
+    'lib32-libusb'
+    'lib32-libxcomposite'
+    'lib32-libxcursor'
+    'lib32-libxfixes'
+    'lib32-libxi'
+    'lib32-libxinerama'
+    'lib32-libxml2'
+    'lib32-libxslt'
+    'lib32-libxxf86vm'
+    'lib32-mpg123'
+    'lib32-ocl-icd'
+    'lib32-openal'
+    'lib32-openssl'
+    'lib32-pcsclite'
+    'lib32-systemd'
+    'lib32-v4l-utils'
+    'lib32-vulkan-icd-loader'
+    'lib32-wayland'
+    'libxcrypt-compat'
+    'polkit'
+    'unzip'
+)
