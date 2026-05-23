@@ -1,0 +1,42 @@
+# Maintainer: Mark Wagie <mark at manjaro dot org>
+# Contributor: excalibur1234 <https://forum.manjaro.org/u/excalibur1234>
+# Contributor: Stefano Capitani <stefanoatmanjarodotorg>
+
+pkgname=pacui
+pkgver=r1255.6f5062c
+pkgrel=1
+epoch=1
+pkgdesc="Bash script providing advanced Pacman and AUR helper functionality in a simple UI"
+arch=('any')
+url="https://codeberg.org/excalibur1234/pacui"
+license=('GPL-3.0-or-later')
+depends=(
+  'expac'
+  'fzf'
+  'less'
+  'pacman-contrib'
+  'pacman-mirrors'
+  'sudo'
+)
+makedepends=('git')
+optdepends=(
+  'downgrade: Needed for hidden "downgrade" option'
+  'flatpak: Needed for Flatpak update support'
+  'fwupd: Needed for firmware update support'
+  'pamac-cli: One AUR helper is needed for AUR support'
+  'snapd: Needed for for Snap update support'
+  'yay: One AUR helper is needed for AUR support'
+)
+_commit=6f5062c067be4e505fb538967646d17e9726c629
+source=("git+https://codeberg.org/excalibur1234/pacui.git#commit=${_commit}")
+sha256sums=('0c7bc7fbb8c7969047ac6b28d2184648f73fce291505726f465f4d65836b8ff4')
+
+pkgver() {
+  cd "$pkgname"
+  printf "r%s.%s" "$(git rev-list --count HEAD)" "$(git rev-parse --short=7 HEAD)"
+}
+
+package () {
+  cd "$pkgname"
+  install -Dm755 "$pkgname" -t "$pkgdir/usr/bin/"
+}
