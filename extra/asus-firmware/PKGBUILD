@@ -1,0 +1,104 @@
+# Maintainer: Philip Müller <philm@manjaro.org>
+# Maintainer: Mark Wagie <mark at manjaro dot org>
+# Contributor: Luke Short <ekultails@gmail.com>
+
+pkgname=asus-firmware
+_tag=8db5bea4cf1b95c54f92d051fad08542d34ea634
+pkgver=20231217.8db5bea
+pkgrel=1
+pkgdesc="Firmware files for ASUS devices"
+url="https://gitlab.com/asus-linux/firmware;a=summary"
+license=('custom')
+arch=('any')
+makedepends=('git')
+provides=('linux-firmware-asus')
+options=('!strip')
+source=("git+https://gitlab.com/asus-linux/firmware.git#commit=$_tag"
+        'LICENSE.cirrus')
+sha256sums=('c1e0bc6bd79af4c53218c7d405fd8b31f7dc4948dd899af7e34c8b4d63d8cd3d'
+            '689991bcb91f37f277788d8b30a7c9b9b22953d4cc6ec7411f89b5b180bdd73e')
+
+_backports=(
+)
+
+prepare() {
+  cd firmware
+
+  local _c
+  for _c in "${_backports[@]}"; do
+    git log --oneline -1 "${_c}"
+    git cherry-pick -n "${_c}"
+  done
+}
+
+pkgver() {
+  cd firmware
+
+  # Commit date + short rev
+  echo $(TZ=UTC git show -s --pretty=%cd --date=format-local:%Y%m%d HEAD).$(git rev-parse --short HEAD)
+}
+
+build() {
+  cd firmware/cirrus
+
+  # Find regular (non-symlink) files and compress them.
+  find . -type f -exec zstd -19 {} \;
+
+  # Delete uncompressed files to make this easier to copy over.
+  find cs35l41/ -name "*.wmfw" -delete
+}
+
+package() {
+  cd firmware
+  install -d "${pkgdir}"/usr/lib/firmware/cirrus
+
+  # Some of the firmware files are upstream in the "linux-firmware" package now.
+  # Only package what is missing.
+  for firmware_bin in \
+    cs35l41-dsp1-spk-cali-1043123f-spkid1-l0.bin \
+    cs35l41-dsp1-spk-cali-1043123f-spkid1-r0.bin \
+    cs35l41-dsp1-spk-cali-10431473-spkid0-l0.bin \
+    cs35l41-dsp1-spk-cali-10431473-spkid0-r0.bin \
+    cs35l41-dsp1-spk-cali-10431483-spkid0-l0.bin \
+    cs35l41-dsp1-spk-cali-10431483-spkid0-r0.bin \
+    cs35l41-dsp1-spk-cali-10431ee2-spkid1-l0.bin \
+    cs35l41-dsp1-spk-cali-10431ee2-spkid1-r0.bin \
+    cs35l41-dsp1-spk-cali-10431f1f-spkid1-l0.bin \
+    cs35l41-dsp1-spk-cali-10431f1f-spkid1-r0.bin \
+    cs35l41-dsp1-spk-cali-10432004-spkid1-l0.bin \
+    cs35l41-dsp1-spk-cali-10432004-spkid1-r0.bin \
+    cs35l41-dsp1-spk-cali-10432064-spkid1-l0.bin \
+    cs35l41-dsp1-spk-cali-10432064-spkid1-r0.bin \
+    cs35l41-dsp1-spk-prot-1043123f-spkid1-l0.bin \
+    cs35l41-dsp1-spk-prot-1043123f-spkid1-r0.bin \
+    cs35l41-dsp1-spk-prot-10431473-spkid0-l0.bin \
+    cs35l41-dsp1-spk-prot-10431473-spkid0-r0.bin \
+    cs35l41-dsp1-spk-prot-10431483-spkid0-l0.bin \
+    cs35l41-dsp1-spk-prot-10431483-spkid0-r0.bin \
+    cs35l41-dsp1-spk-prot-10431ee2-spkid1-l0.bin \
+    cs35l41-dsp1-spk-prot-10431ee2-spkid1-r0.bin \
+    cs35l41-dsp1-spk-prot-10431f1f-spkid1-l0.bin \
+    cs35l41-dsp1-spk-prot-10431f1f-spkid1-r0.bin \
+    cs35l41-dsp1-spk-prot-10432004-spkid1-l0.bin \
+    cs35l41-dsp1-spk-prot-10432004-spkid1-r0.bin \
+    cs35l41-dsp1-spk-prot-10432064-spkid1-l0.bin
+      do cp "cirrus/${firmware_bin}.zst" "${pkgdir}"/usr/lib/firmware/cirrus/
+  done
+
+  # Manually recreate these symlinks because the original symlinks do not work.
+  # The "linux-firmware" package provides the same destination file but it is compressed.
+  cd "${pkgdir}"/usr/lib/firmware/cirrus
+  for firmware_wmfw in \
+    cs35l41-dsp1-spk-cali-1043123f.wmfw.zst \
+    cs35l41-dsp1-spk-cali-10432004.wmfw.zst \
+    cs35l41-dsp1-spk-cali-10432064.wmfw.zst \
+    cs35l41-dsp1-spk-prot-1043123f.wmfw.zst \
+    cs35l41-dsp1-spk-prot-10432004.wmfw.zst \
+    cs35l41-dsp1-spk-prot-10432064.wmfw.zst
+      do ln -s cs35l41/v6.61.1/halo_cspl_RAM_revB2_29.63.1.wmfw.zst "${firmware_wmfw}"
+  done
+
+  install -Dm644 "${srcdir}"/LICENSE.cirrus "${pkgdir}/usr/share/licenses/${pkgname}/LICENSE.cirrus"
+}
+
+# vim:set sw=2 et:
