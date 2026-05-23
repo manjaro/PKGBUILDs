@@ -1,0 +1,16 @@
+eol() {
+  echo ">>> NOTE, 5.6.19 was the last maintenance release by Greg Kroah-Hartman."
+  echo "    This kernel series is now marked EOL (end of life)."
+  echo "    "
+  echo "    It is recommend to move on to linux57 series."
+  echo "    Use followed cmd to do that: 'sudo mhwd-kernel -i linux57'"
+  echo "    "
+}
+
+post_upgrade() {
+  eol
+}
+
+post_install() {
+  eol
+}
