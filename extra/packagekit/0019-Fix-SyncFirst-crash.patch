@@ -1,0 +1,53 @@
+From 86adae9c14fed3ea8c680c889df08c3b3b7f7fd1 Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Ramon=20Buld=C3=B3?= <rbuldo@gmail.com>
+Date: Mon, 2 Feb 2015 20:28:07 +0100
+Subject: [PATCH] Fix SyncFirst crash
+
+---
+ backends/alpm/pk-alpm-config.c | 9 ++++++++-
+ 1 file changed, 8 insertions(+), 1 deletion(-)
+
+diff --git a/backends/alpm/pk-alpm-config.c b/backends/alpm/pk-alpm-config.c
+index 54e0e7f..4d533bc 100644
+--- a/backends/alpm/pk-alpm-config.c
++++ b/backends/alpm/pk-alpm-config.c
+@@ -46,7 +46,7 @@ typedef struct
+
+ 	 alpm_list_t		*cachedirs, *holdpkgs, *ignoregroups,
+ 				*ignorepkgs, *localfilesiglevels, *noextracts,
+-				*noupgrades, *remotefilesiglevels, *hookdirs;
++				*noupgrades, *remotefilesiglevels, *hookdirs, *syncfirsts;
+
+ 	 alpm_list_t		*sections;
+ 	 GRegex			*xrepo, *xarch;
+@@ -106,6 +106,7 @@ pk_alpm_config_free (PkAlpmConfig *config)
+ 	FREELIST (config->noupgrades);
+ 	FREELIST (config->remotefilesiglevels);
+ 	FREELIST (config->hookdirs);
++	FREELIST (config->syncfirsts);
+
+ 	alpm_list_free_inner (config->sections, pk_alpm_config_section_free);
+ 	alpm_list_free (config->sections);
+@@ -372,6 +372,7 @@
+ 	{ "NoUpgrade", G_STRUCT_OFFSET (PkAlpmConfig, noupgrades) },
+ 	{ "RemoteFileSigLevel", G_STRUCT_OFFSET (PkAlpmConfig,
+ 						 remotefilesiglevels) },
++	{ "SyncFirst", G_STRUCT_OFFSET (PkAlpmConfig, syncfirsts) },
+ 	{ NULL, 0 }
+ };
+
+@@ -968,6 +970,11 @@ pk_alpm_config_configure_alpm (PkAlpmConfig *config, GError **error)
+ 	priv->holdpkgs = config->holdpkgs;
+ 	config->holdpkgs = NULL;
+
++	/* backend takes ownership */
++	FREELIST (priv->syncfirsts);
++	priv->syncfirsts = config->syncfirsts;
++	config->syncfirsts = NULL;
++
+ 	/* alpm takes ownership */
+ 	alpm_option_set_ignoregroups (handle, config->ignoregroups);
+ 	config->ignoregroups = NULL;
+--
+2.2.2
+
