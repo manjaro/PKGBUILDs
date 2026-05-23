@@ -1,0 +1,17 @@
+diff -Npur linux-6.16/drivers/gpu/drm/drm_panel_backlight_quirks.c linux-6.16/drivers/gpu/drm/drm_panel_backlight_quirks.c
+--- linux-6.16/drivers/gpu/drm/drm_panel_backlight_quirks.c	2025-08-25 07:48:14.999042519 +0200
++++ linux-6.16/drivers/gpu/drm/drm_panel_backlight_quirks.c	2025-08-25 07:50:21.131653069 +0200
+@@ -61,6 +61,13 @@ static const struct drm_get_panel_backli
+ 	},
+ 	{
+ 		.dmi_match.field = DMI_SYS_VENDOR,
++		.dmi_match.value = "ZOTAC",
++		.dmi_match_other.field = DMI_BOARD_NAME,
++		.dmi_match_other.value = "G1A1W",
++		.quirk = { .brightness_mask = 3, },
++	},
++	{
++		.dmi_match.field = DMI_SYS_VENDOR,
+ 		.dmi_match.value = "ONE-NETBOOK",
+ 		.dmi_match_other.field = DMI_PRODUCT_NAME,
+ 		.dmi_match_other.value = "ONEXPLAYER F1Pro",

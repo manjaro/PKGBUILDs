@@ -1,0 +1,11 @@
+diff -Npur linux-6.16/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c linux-6.16/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c
+--- linux-6.16/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c	2025-08-25 07:48:15.001962827 +0200
++++ linux-6.16/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c	2025-08-25 08:39:22.067083705 +0200
+@@ -4845,6 +4845,7 @@ static void amdgpu_dm_backlight_set_leve
+ 	/* Apply brightness quirk */
+ 	if (caps->brightness_mask)
+ 		brightness |= caps->brightness_mask;
++		printk("Brightness_Mask: Brightness Quirk applied");
+ 
+ 	/* Change brightness based on AUX property */
+ 	mutex_lock(&dm->dc_lock);

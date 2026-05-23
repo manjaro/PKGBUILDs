@@ -1,0 +1,113 @@
+From 30111dbc402b57bc740cbf07b5b2187dd45e9b9e Mon Sep 17 00:00:00 2001
+From: Mario Limonciello <mario.limonciello@amd.com>
+Date: Mon, 28 Jul 2025 03:17:30 +0530
+Subject: [PATCH] drm/amd/display: Add a quirk for the Zotac Zone
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+[Why]
+Certain OLED devices malfunction on specific brightness levels.
+Specifically, when DP_SOURCE_BACKLIGHT_LEVEL is written to with
+the first byte being 0x00 and sometimes 0x01, the panel forcibly
+turns off until the device sleeps again.
+
+[How]
+Detect the DMI data for the Zotac Zone and apply a quirk that ensures
+that the last two bits of the converted brightness are always 1.
+
+Link: https://gitlab.manjaro.org/packages/core/linux615/-/blob/master/0004-TEMPORARY-terrible-hack-for-zotac-screen-while-debug.patch?ref_type=heads
+Co-developed-by: Luke Jones <luke@ljones.dev>
+Co-developed-by: Philip Müller <philm@manjaro.org>
+Signed-off-by: Luke Jones <luke@ljones.dev>
+Reported-by: Philip Müller <philm@manjaro.org>
+Signed-off-by: Mario Limonciello <mario.limonciello@amd.com>
+---
+ .../gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c   |  3 +++
+ .../gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.h   |  8 ++++++++
+ .../amd/display/amdgpu_dm/amdgpu_dm_quirks.c    | 17 +++++++++++++++++
+ 3 files changed, 28 insertions(+)
+
+diff --git a/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c b/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c
+index bdbcc76276ac..54f06542d1ab 100644
+--- a/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c
++++ b/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c
+@@ -4850,6 +4850,9 @@ static void amdgpu_dm_backlight_set_level(struct amdgpu_display_manager *dm,
+ 		reallow_idle = true;
+ 	}
+ 
++	if (dm->non_zero_luminance_quirk)
++		brightness |= 3;
++
+ 	if (trace_amdgpu_dm_brightness_enabled()) {
+ 		trace_amdgpu_dm_brightness(__builtin_return_address(0),
+ 					   user_brightness,
+diff --git a/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.h b/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.h
+index 5a38373e054a..f1e5c4f7da18 100644
+--- a/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.h
++++ b/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.h
+@@ -626,6 +626,14 @@ struct amdgpu_display_manager {
+ 	 */
+ 	bool edp0_on_dp1_quirk;
+ 
++	/**
++	 * @non_zero_luminance_quirk:
++	 *
++	 * quirk for platforms that the first byte of luminance
++	 * data is not zero.
++	 */
++	bool non_zero_luminance_quirk;
++
+ 	/**
+ 	 * @dpia_aux_lock:
+ 	 *
+diff --git a/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm_quirks.c b/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm_quirks.c
+index 1da07ebf9217..4480d74eae45 100644
+--- a/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm_quirks.c
++++ b/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm_quirks.c
+@@ -32,6 +32,7 @@
+ struct amdgpu_dm_quirks {
+ 	bool aux_hpd_discon;
+ 	bool support_edp0_on_dp1;
++	bool non_zero_luminance;
+ };
+ 
+ static struct amdgpu_dm_quirks quirk_entries = {
+@@ -39,6 +40,12 @@ static struct amdgpu_dm_quirks quirk_entries = {
+ 	.support_edp0_on_dp1 = false
+ };
+ 
++static int non_zero_luminance_callback(const struct dmi_system_id *id)
++{
++	quirk_entries.non_zero_luminance = true;
++	return 0;
++}
++
+ static int edp0_on_dp1_callback(const struct dmi_system_id *id)
+ {
+ 	quirk_entries.support_edp0_on_dp1 = true;
+@@ -150,6 +157,12 @@ static const struct dmi_system_id dmi_quirk_table[] = {
+ 			DMI_MATCH(DMI_PRODUCT_NAME, "HP ProBook 465 16 inch G11 Notebook PC"),
+ 		},
+ 	},
++	{
++		.matches = {
++			DMI_MATCH(DMI_PRODUCT_NAME, "ZOTAC GAMING ZONE"),
++		},
++		.callback = non_zero_luminance_callback,
++	},
+ 	{}
+ 	/* TODO: refactor this from a fixed table to a dynamic option */
+ };
+@@ -175,4 +188,8 @@ void retrieve_dmi_info(struct amdgpu_display_manager *dm)
+ 		dm->edp0_on_dp1_quirk = true;
+ 		drm_info(dev, "support_edp0_on_dp1 attached\n");
+ 	}
++	if (quirk_entries.non_zero_luminance) {
++		dm->non_zero_luminance_quirk = true;
++		drm_info(dev, "non_zero_luminance_quirk attached\n");
++	}
+ }
+-- 
+2.50.1
+

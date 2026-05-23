@@ -1,0 +1,406 @@
+--- b/drivers/gpu/drm/amd/amdgpu/amdgpu_psp.c
++++ a/drivers/gpu/drm/amd/amdgpu/amdgpu_psp.c
+@@ -596,10 +596,6 @@
+ 		udelay(1);
+ 	}
+ 
+-	dev_err(adev->dev,
+-		"psp reg (0x%x) wait timed out, mask: %x, read: %x exp: %x",
+-		reg_index, mask, val, reg_val);
+-
+ 	return -ETIME;
+ }
+ 
+--- b/drivers/gpu/drm/amd/amdgpu/amdgpu_psp.h
++++ a/drivers/gpu/drm/amd/amdgpu/amdgpu_psp.h
+@@ -51,17 +51,6 @@
+ #define C2PMSG_CMD_SPI_GET_ROM_IMAGE_ADDR_HI 0x10
+ #define C2PMSG_CMD_SPI_GET_FLASH_IMAGE 0x11
+ 
+-/* Command register bit 31 set to indicate readiness */
+-#define MBOX_TOS_READY_FLAG (GFX_FLAG_RESPONSE)
+-#define MBOX_TOS_READY_MASK (GFX_CMD_RESPONSE_MASK | GFX_CMD_STATUS_MASK)
+-
+-/* Values to check for a successful GFX_CMD response wait. Check against
+- * both status bits and response state - helps to detect a command failure
+- * or other unexpected cases like a device drop reading all 0xFFs
+- */
+-#define MBOX_TOS_RESP_FLAG (GFX_FLAG_RESPONSE)
+-#define MBOX_TOS_RESP_MASK (GFX_CMD_RESPONSE_MASK | GFX_CMD_STATUS_MASK)
+-
+ extern const struct attribute_group amdgpu_flash_attr_group;
+ 
+ enum psp_shared_mem_size {
+--- b/drivers/gpu/drm/amd/amdgpu/psp_v10_0.c
++++ a/drivers/gpu/drm/amd/amdgpu/psp_v10_0.c
+@@ -94,7 +94,7 @@
+ 
+ 	/* Wait for response flag (bit 31) in C2PMSG_64 */
+ 	ret = psp_wait_for(psp, SOC15_REG_OFFSET(MP0, 0, mmMP0_SMN_C2PMSG_64),
++			   0x80000000, 0x8000FFFF, false);
+-			   MBOX_TOS_RESP_FLAG, MBOX_TOS_RESP_MASK, false);
+ 
+ 	return ret;
+ }
+@@ -115,7 +115,7 @@
+ 
+ 	/* Wait for response flag (bit 31) in C2PMSG_64 */
+ 	ret = psp_wait_for(psp, SOC15_REG_OFFSET(MP0, 0, mmMP0_SMN_C2PMSG_64),
++			   0x80000000, 0x80000000, false);
+-			   MBOX_TOS_RESP_FLAG, MBOX_TOS_RESP_MASK, false);
+ 
+ 	return ret;
+ }
+--- b/drivers/gpu/drm/amd/amdgpu/psp_v11_0.c
++++ a/drivers/gpu/drm/amd/amdgpu/psp_v11_0.c
+@@ -277,13 +277,11 @@
+ 
+ 	/* Wait for response flag (bit 31) */
+ 	if (amdgpu_sriov_vf(adev))
++		ret = psp_wait_for(psp, SOC15_REG_OFFSET(MP0, 0, mmMP0_SMN_C2PMSG_101),
++				   0x80000000, 0x80000000, false);
+-		ret = psp_wait_for(
+-			psp, SOC15_REG_OFFSET(MP0, 0, mmMP0_SMN_C2PMSG_101),
+-			MBOX_TOS_RESP_FLAG, MBOX_TOS_RESP_MASK, false);
+ 	else
++		ret = psp_wait_for(psp, SOC15_REG_OFFSET(MP0, 0, mmMP0_SMN_C2PMSG_64),
++				   0x80000000, 0x80000000, false);
+-		ret = psp_wait_for(
+-			psp, SOC15_REG_OFFSET(MP0, 0, mmMP0_SMN_C2PMSG_64),
+-			MBOX_TOS_RESP_FLAG, MBOX_TOS_RESP_MASK, false);
+ 
+ 	return ret;
+ }
+@@ -319,15 +317,13 @@
+ 		mdelay(20);
+ 
+ 		/* Wait for response flag (bit 31) in C2PMSG_101 */
++		ret = psp_wait_for(psp, SOC15_REG_OFFSET(MP0, 0, mmMP0_SMN_C2PMSG_101),
++				   0x80000000, 0x8000FFFF, false);
+-		ret = psp_wait_for(
+-			psp, SOC15_REG_OFFSET(MP0, 0, mmMP0_SMN_C2PMSG_101),
+-			MBOX_TOS_RESP_FLAG, MBOX_TOS_RESP_MASK, false);
+ 
+ 	} else {
+ 		/* Wait for sOS ready for ring creation */
++		ret = psp_wait_for(psp, SOC15_REG_OFFSET(MP0, 0, mmMP0_SMN_C2PMSG_64),
++				   0x80000000, 0x80000000, false);
+-		ret = psp_wait_for(
+-			psp, SOC15_REG_OFFSET(MP0, 0, mmMP0_SMN_C2PMSG_64),
+-			MBOX_TOS_READY_FLAG, MBOX_TOS_READY_MASK, false);
+ 		if (ret) {
+ 			DRM_ERROR("Failed to wait for sOS ready for ring creation\n");
+ 			return ret;
+@@ -351,9 +347,8 @@
+ 		mdelay(20);
+ 
+ 		/* Wait for response flag (bit 31) in C2PMSG_64 */
++		ret = psp_wait_for(psp, SOC15_REG_OFFSET(MP0, 0, mmMP0_SMN_C2PMSG_64),
++				   0x80000000, 0x8000FFFF, false);
+-		ret = psp_wait_for(
+-			psp, SOC15_REG_OFFSET(MP0, 0, mmMP0_SMN_C2PMSG_64),
+-			MBOX_TOS_RESP_FLAG, MBOX_TOS_RESP_MASK, false);
+ 	}
+ 
+ 	return ret;
+@@ -386,8 +381,7 @@
+ 
+ 	offset = SOC15_REG_OFFSET(MP0, 0, mmMP0_SMN_C2PMSG_64);
+ 
++	ret = psp_wait_for(psp, offset, 0x80000000, 0x8000FFFF, false);
+-	ret = psp_wait_for(psp, offset, MBOX_TOS_READY_FLAG,
+-			   MBOX_TOS_READY_MASK, false);
+ 
+ 	if (ret) {
+ 		DRM_INFO("psp is not working correctly before mode1 reset!\n");
+@@ -401,8 +395,7 @@
+ 
+ 	offset = SOC15_REG_OFFSET(MP0, 0, mmMP0_SMN_C2PMSG_33);
+ 
++	ret = psp_wait_for(psp, offset, 0x80000000, 0x80000000, false);
+-	ret = psp_wait_for(psp, offset, MBOX_TOS_RESP_FLAG, MBOX_TOS_RESP_MASK,
+-			   false);
+ 
+ 	if (ret) {
+ 		DRM_INFO("psp mode 1 reset failed!\n");
+--- b/drivers/gpu/drm/amd/amdgpu/psp_v11_0_8.c
++++ a/drivers/gpu/drm/amd/amdgpu/psp_v11_0_8.c
+@@ -41,9 +41,8 @@
+ 		/* there might be handshake issue with hardware which needs delay */
+ 		mdelay(20);
+ 		/* Wait for response flag (bit 31) */
++		ret = psp_wait_for(psp, SOC15_REG_OFFSET(MP0, 0, mmMP0_SMN_C2PMSG_101),
++				   0x80000000, 0x80000000, false);
+-		ret = psp_wait_for(
+-			psp, SOC15_REG_OFFSET(MP0, 0, mmMP0_SMN_C2PMSG_101),
+-			MBOX_TOS_RESP_FLAG, MBOX_TOS_RESP_MASK, false);
+ 	} else {
+ 		/* Write the ring destroy command*/
+ 		WREG32_SOC15(MP0, 0, mmMP0_SMN_C2PMSG_64,
+@@ -51,9 +50,8 @@
+ 		/* there might be handshake issue with hardware which needs delay */
+ 		mdelay(20);
+ 		/* Wait for response flag (bit 31) */
++		ret = psp_wait_for(psp, SOC15_REG_OFFSET(MP0, 0, mmMP0_SMN_C2PMSG_64),
++				   0x80000000, 0x80000000, false);
+-		ret = psp_wait_for(
+-			psp, SOC15_REG_OFFSET(MP0, 0, mmMP0_SMN_C2PMSG_64),
+-			MBOX_TOS_RESP_FLAG, MBOX_TOS_RESP_MASK, false);
+ 	}
+ 
+ 	return ret;
+@@ -89,15 +87,13 @@
+ 		mdelay(20);
+ 
+ 		/* Wait for response flag (bit 31) in C2PMSG_101 */
++		ret = psp_wait_for(psp, SOC15_REG_OFFSET(MP0, 0, mmMP0_SMN_C2PMSG_101),
++				   0x80000000, 0x8000FFFF, false);
+-		ret = psp_wait_for(
+-			psp, SOC15_REG_OFFSET(MP0, 0, mmMP0_SMN_C2PMSG_101),
+-			MBOX_TOS_RESP_FLAG, MBOX_TOS_RESP_MASK, false);
+ 
+ 	} else {
+ 		/* Wait for sOS ready for ring creation */
++		ret = psp_wait_for(psp, SOC15_REG_OFFSET(MP0, 0, mmMP0_SMN_C2PMSG_64),
++				   0x80000000, 0x80000000, false);
+-		ret = psp_wait_for(
+-			psp, SOC15_REG_OFFSET(MP0, 0, mmMP0_SMN_C2PMSG_64),
+-			MBOX_TOS_READY_FLAG, MBOX_TOS_READY_MASK, false);
+ 		if (ret) {
+ 			DRM_ERROR("Failed to wait for trust OS ready for ring creation\n");
+ 			return ret;
+@@ -121,9 +117,8 @@
+ 		mdelay(20);
+ 
+ 		/* Wait for response flag (bit 31) in C2PMSG_64 */
++		ret = psp_wait_for(psp, SOC15_REG_OFFSET(MP0, 0, mmMP0_SMN_C2PMSG_64),
++				   0x80000000, 0x8000FFFF, false);
+-		ret = psp_wait_for(
+-			psp, SOC15_REG_OFFSET(MP0, 0, mmMP0_SMN_C2PMSG_64),
+-			MBOX_TOS_RESP_FLAG, MBOX_TOS_RESP_MASK, false);
+ 	}
+ 
+ 	return ret;
+--- b/drivers/gpu/drm/amd/amdgpu/psp_v12_0.c
++++ a/drivers/gpu/drm/amd/amdgpu/psp_v12_0.c
+@@ -163,7 +163,7 @@
+ 
+ 	/* Wait for response flag (bit 31) in C2PMSG_64 */
+ 	ret = psp_wait_for(psp, SOC15_REG_OFFSET(MP0, 0, mmMP0_SMN_C2PMSG_64),
++			   0x80000000, 0x8000FFFF, false);
+-			   MBOX_TOS_RESP_FLAG, MBOX_TOS_RESP_MASK, false);
+ 
+ 	return ret;
+ }
+@@ -184,13 +184,11 @@
+ 
+ 	/* Wait for response flag (bit 31) */
+ 	if (amdgpu_sriov_vf(adev))
++		ret = psp_wait_for(psp, SOC15_REG_OFFSET(MP0, 0, mmMP0_SMN_C2PMSG_101),
++				   0x80000000, 0x80000000, false);
+-		ret = psp_wait_for(
+-			psp, SOC15_REG_OFFSET(MP0, 0, mmMP0_SMN_C2PMSG_101),
+-			MBOX_TOS_RESP_FLAG, MBOX_TOS_RESP_MASK, false);
+ 	else
++		ret = psp_wait_for(psp, SOC15_REG_OFFSET(MP0, 0, mmMP0_SMN_C2PMSG_64),
++				   0x80000000, 0x80000000, false);
+-		ret = psp_wait_for(
+-			psp, SOC15_REG_OFFSET(MP0, 0, mmMP0_SMN_C2PMSG_64),
+-			MBOX_TOS_RESP_FLAG, MBOX_TOS_RESP_MASK, false);
+ 
+ 	return ret;
+ }
+@@ -221,8 +219,7 @@
+ 
+ 	offset = SOC15_REG_OFFSET(MP0, 0, mmMP0_SMN_C2PMSG_64);
+ 
++	ret = psp_wait_for(psp, offset, 0x80000000, 0x8000FFFF, false);
+-	ret = psp_wait_for(psp, offset, MBOX_TOS_READY_FLAG,
+-			   MBOX_TOS_READY_MASK, false);
+ 
+ 	if (ret) {
+ 		DRM_INFO("psp is not working correctly before mode1 reset!\n");
+@@ -236,8 +233,7 @@
+ 
+ 	offset = SOC15_REG_OFFSET(MP0, 0, mmMP0_SMN_C2PMSG_33);
+ 
++	ret = psp_wait_for(psp, offset, 0x80000000, 0x80000000, false);
+-	ret = psp_wait_for(psp, offset, MBOX_TOS_RESP_FLAG, MBOX_TOS_RESP_MASK,
+-			   false);
+ 
+ 	if (ret) {
+ 		DRM_INFO("psp mode 1 reset failed!\n");
+--- b/drivers/gpu/drm/amd/amdgpu/psp_v13_0.c
++++ a/drivers/gpu/drm/amd/amdgpu/psp_v13_0.c
+@@ -384,9 +384,8 @@
+ 		/* there might be handshake issue with hardware which needs delay */
+ 		mdelay(20);
+ 		/* Wait for response flag (bit 31) */
++		ret = psp_wait_for(psp, SOC15_REG_OFFSET(MP0, 0, regMP0_SMN_C2PMSG_101),
++				   0x80000000, 0x80000000, false);
+-		ret = psp_wait_for(
+-			psp, SOC15_REG_OFFSET(MP0, 0, regMP0_SMN_C2PMSG_101),
+-			MBOX_TOS_RESP_FLAG, MBOX_TOS_RESP_MASK, false);
+ 	} else {
+ 		/* Write the ring destroy command*/
+ 		WREG32_SOC15(MP0, 0, regMP0_SMN_C2PMSG_64,
+@@ -394,9 +393,8 @@
+ 		/* there might be handshake issue with hardware which needs delay */
+ 		mdelay(20);
+ 		/* Wait for response flag (bit 31) */
++		ret = psp_wait_for(psp, SOC15_REG_OFFSET(MP0, 0, regMP0_SMN_C2PMSG_64),
++				   0x80000000, 0x80000000, false);
+-		ret = psp_wait_for(
+-			psp, SOC15_REG_OFFSET(MP0, 0, regMP0_SMN_C2PMSG_64),
+-			MBOX_TOS_RESP_FLAG, MBOX_TOS_RESP_MASK, false);
+ 	}
+ 
+ 	return ret;
+@@ -432,15 +430,13 @@
+ 		mdelay(20);
+ 
+ 		/* Wait for response flag (bit 31) in C2PMSG_101 */
++		ret = psp_wait_for(psp, SOC15_REG_OFFSET(MP0, 0, regMP0_SMN_C2PMSG_101),
++				   0x80000000, 0x8000FFFF, false);
+-		ret = psp_wait_for(
+-			psp, SOC15_REG_OFFSET(MP0, 0, regMP0_SMN_C2PMSG_101),
+-			MBOX_TOS_RESP_FLAG, MBOX_TOS_RESP_MASK, false);
+ 
+ 	} else {
+ 		/* Wait for sOS ready for ring creation */
++		ret = psp_wait_for(psp, SOC15_REG_OFFSET(MP0, 0, regMP0_SMN_C2PMSG_64),
++				   0x80000000, 0x80000000, false);
+-		ret = psp_wait_for(
+-			psp, SOC15_REG_OFFSET(MP0, 0, regMP0_SMN_C2PMSG_64),
+-			MBOX_TOS_READY_FLAG, MBOX_TOS_READY_MASK, false);
+ 		if (ret) {
+ 			DRM_ERROR("Failed to wait for trust OS ready for ring creation\n");
+ 			return ret;
+@@ -464,9 +460,8 @@
+ 		mdelay(20);
+ 
+ 		/* Wait for response flag (bit 31) in C2PMSG_64 */
++		ret = psp_wait_for(psp, SOC15_REG_OFFSET(MP0, 0, regMP0_SMN_C2PMSG_64),
++				   0x80000000, 0x8000FFFF, false);
+-		ret = psp_wait_for(
+-			psp, SOC15_REG_OFFSET(MP0, 0, regMP0_SMN_C2PMSG_64),
+-			MBOX_TOS_RESP_FLAG, MBOX_TOS_RESP_MASK, false);
+ 	}
+ 
+ 	return ret;
+--- b/drivers/gpu/drm/amd/amdgpu/psp_v13_0_4.c
++++ a/drivers/gpu/drm/amd/amdgpu/psp_v13_0_4.c
+@@ -204,9 +204,8 @@
+ 		/* there might be handshake issue with hardware which needs delay */
+ 		mdelay(20);
+ 		/* Wait for response flag (bit 31) */
++		ret = psp_wait_for(psp, SOC15_REG_OFFSET(MP0, 0, regMP0_SMN_C2PMSG_101),
++				   0x80000000, 0x80000000, false);
+-		ret = psp_wait_for(
+-			psp, SOC15_REG_OFFSET(MP0, 0, regMP0_SMN_C2PMSG_101),
+-			MBOX_TOS_RESP_FLAG, MBOX_TOS_RESP_MASK, false);
+ 	} else {
+ 		/* Write the ring destroy command*/
+ 		WREG32_SOC15(MP0, 0, regMP0_SMN_C2PMSG_64,
+@@ -214,9 +213,8 @@
+ 		/* there might be handshake issue with hardware which needs delay */
+ 		mdelay(20);
+ 		/* Wait for response flag (bit 31) */
++		ret = psp_wait_for(psp, SOC15_REG_OFFSET(MP0, 0, regMP0_SMN_C2PMSG_64),
++				   0x80000000, 0x80000000, false);
+-		ret = psp_wait_for(
+-			psp, SOC15_REG_OFFSET(MP0, 0, regMP0_SMN_C2PMSG_64),
+-			MBOX_TOS_RESP_FLAG, MBOX_TOS_RESP_MASK, false);
+ 	}
+ 
+ 	return ret;
+@@ -252,15 +250,13 @@
+ 		mdelay(20);
+ 
+ 		/* Wait for response flag (bit 31) in C2PMSG_101 */
++		ret = psp_wait_for(psp, SOC15_REG_OFFSET(MP0, 0, regMP0_SMN_C2PMSG_101),
++				   0x80000000, 0x8000FFFF, false);
+-		ret = psp_wait_for(
+-			psp, SOC15_REG_OFFSET(MP0, 0, regMP0_SMN_C2PMSG_101),
+-			MBOX_TOS_RESP_FLAG, MBOX_TOS_RESP_MASK, false);
+ 
+ 	} else {
+ 		/* Wait for sOS ready for ring creation */
++		ret = psp_wait_for(psp, SOC15_REG_OFFSET(MP0, 0, regMP0_SMN_C2PMSG_64),
++				   0x80000000, 0x80000000, false);
+-		ret = psp_wait_for(
+-			psp, SOC15_REG_OFFSET(MP0, 0, regMP0_SMN_C2PMSG_64),
+-			MBOX_TOS_READY_FLAG, MBOX_TOS_READY_MASK, false);
+ 		if (ret) {
+ 			DRM_ERROR("Failed to wait for trust OS ready for ring creation\n");
+ 			return ret;
+@@ -284,9 +280,8 @@
+ 		mdelay(20);
+ 
+ 		/* Wait for response flag (bit 31) in C2PMSG_64 */
++		ret = psp_wait_for(psp, SOC15_REG_OFFSET(MP0, 0, regMP0_SMN_C2PMSG_64),
++				   0x80000000, 0x8000FFFF, false);
+-		ret = psp_wait_for(
+-			psp, SOC15_REG_OFFSET(MP0, 0, regMP0_SMN_C2PMSG_64),
+-			MBOX_TOS_RESP_FLAG, MBOX_TOS_RESP_MASK, false);
+ 	}
+ 
+ 	return ret;
+--- b/drivers/gpu/drm/amd/amdgpu/psp_v14_0.c
++++ a/drivers/gpu/drm/amd/amdgpu/psp_v14_0.c
+@@ -248,9 +248,8 @@
+ 		/* there might be handshake issue with hardware which needs delay */
+ 		mdelay(20);
+ 		/* Wait for response flag (bit 31) */
++		ret = psp_wait_for(psp, SOC15_REG_OFFSET(MP0, 0, regMPASP_SMN_C2PMSG_101),
++				   0x80000000, 0x80000000, false);
+-		ret = psp_wait_for(
+-			psp, SOC15_REG_OFFSET(MP0, 0, regMPASP_SMN_C2PMSG_101),
+-			MBOX_TOS_RESP_FLAG, MBOX_TOS_RESP_MASK, false);
+ 	} else {
+ 		/* Write the ring destroy command*/
+ 		WREG32_SOC15(MP0, 0, regMPASP_SMN_C2PMSG_64,
+@@ -258,9 +257,8 @@
+ 		/* there might be handshake issue with hardware which needs delay */
+ 		mdelay(20);
+ 		/* Wait for response flag (bit 31) */
++		ret = psp_wait_for(psp, SOC15_REG_OFFSET(MP0, 0, regMPASP_SMN_C2PMSG_64),
++				   0x80000000, 0x80000000, false);
+-		ret = psp_wait_for(
+-			psp, SOC15_REG_OFFSET(MP0, 0, regMPASP_SMN_C2PMSG_64),
+-			MBOX_TOS_RESP_FLAG, MBOX_TOS_RESP_MASK, false);
+ 	}
+ 
+ 	return ret;
+@@ -296,15 +294,13 @@
+ 		mdelay(20);
+ 
+ 		/* Wait for response flag (bit 31) in C2PMSG_101 */
++		ret = psp_wait_for(psp, SOC15_REG_OFFSET(MP0, 0, regMPASP_SMN_C2PMSG_101),
++				   0x80000000, 0x8000FFFF, false);
+-		ret = psp_wait_for(
+-			psp, SOC15_REG_OFFSET(MP0, 0, regMPASP_SMN_C2PMSG_101),
+-			MBOX_TOS_RESP_FLAG, MBOX_TOS_RESP_MASK, false);
+ 
+ 	} else {
+ 		/* Wait for sOS ready for ring creation */
++		ret = psp_wait_for(psp, SOC15_REG_OFFSET(MP0, 0, regMPASP_SMN_C2PMSG_64),
++				   0x80000000, 0x80000000, false);
+-		ret = psp_wait_for(
+-			psp, SOC15_REG_OFFSET(MP0, 0, regMPASP_SMN_C2PMSG_64),
+-			MBOX_TOS_READY_FLAG, MBOX_TOS_READY_MASK, false);
+ 		if (ret) {
+ 			DRM_ERROR("Failed to wait for trust OS ready for ring creation\n");
+ 			return ret;
+@@ -328,9 +324,8 @@
+ 		mdelay(20);
+ 
+ 		/* Wait for response flag (bit 31) in C2PMSG_64 */
++		ret = psp_wait_for(psp, SOC15_REG_OFFSET(MP0, 0, regMPASP_SMN_C2PMSG_64),
++				   0x80000000, 0x8000FFFF, false);
+-		ret = psp_wait_for(
+-			psp, SOC15_REG_OFFSET(MP0, 0, regMPASP_SMN_C2PMSG_64),
+-			MBOX_TOS_RESP_FLAG, MBOX_TOS_RESP_MASK, false);
+ 	}
+ 
+ 	return ret;
