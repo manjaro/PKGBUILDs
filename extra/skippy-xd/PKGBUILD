@@ -1,0 +1,36 @@
+# Maintainer: Mark Wagie <mark at manjaro dot org>
+# Contributor Stefano Capitani <stefano@manjaro.org>
+
+pkgname=skippy-xd
+pkgver=2023.06.25
+pkgrel=1
+pkgdesc="A full-screen Exposé-style standalone task switcher for X11."
+arch=('x86_64')
+url="https://github.com/dreamcat4/skippy-xd"
+license=('GPL-2.0-or-later')
+depends=(
+  'giflib'
+  'libjpeg-turbo'
+  'libpng' 'libx11'
+  'libxcomposite'
+  'libxdamage'
+  'libxext'
+  'libxfixes'
+  'libxinerama'
+  'libxft'
+  'libxrender'
+  'zlib'
+)
+makedepends=('git')
+source=("git+https://github.com/dreamcat4/skippy-xd.git#tag=v$pkgver")
+sha256sums=('9c5ddd089a8e8b27421bffcb062ca0253871cef95c990054db1634aeeff23123')
+
+build() {
+  cd "$pkgname"
+  make
+}
+
+package() {
+  cd "$pkgname"
+  make DESTDIR="$pkgdir" install
+}
