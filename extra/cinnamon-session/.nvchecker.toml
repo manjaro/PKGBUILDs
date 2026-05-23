@@ -1,3 +1,0 @@
-[cinnamon-session]
-source = "git"
-git = "https://github.com/linuxmint/cinnamon-session.git"
