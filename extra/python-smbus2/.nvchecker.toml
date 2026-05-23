@@ -1,3 +1,0 @@
-[python-smbus2]
-source = "git"
-git = "https://github.com/kplindegaard/smbus2.git"
