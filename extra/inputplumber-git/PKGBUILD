@@ -1,0 +1,62 @@
+# Maintainer: William Edwards <shadowapex@gmail.com>
+pkgname=inputplumber-git
+_pkgbase=inputplumber
+_commit=2cefc80f9b39a6ee91f69a6ba4f86f4611861612
+pkgver=0.76.0.r0.g2cefc80
+pkgrel=1
+pkgdesc="Open source input router and remapper daemon for Linux"
+arch=('x86_64')
+url="https://github.com/ShadowBlip/InputPlumber"
+license=('GPL')
+depends=('dbus' 'libevdev' 'libiio')
+makedepends=('rust' 'make' 'cmake' 'clang' 'git' 'less')
+provides=('inputplumber')
+conflicts=('inputplumber-bin' 'inputplumber')
+source=("${_pkgbase}::git+https://github.com/ShadowBlip/${_pkgbase}.git#commit=$_commit")
+options=(!lto)
+
+sha256sums=('387e9278e3b02adfc08ef27946c692786f79361efa90c730f30228315be81a1a')
+
+_backports=(
+)
+
+_reverts=(
+)
+
+pkgver() {
+  cd "$srcdir/${_pkgbase}"
+  git describe --long --tags | sed 's/\([^-]*-g\)/r\1/;s/-/./g;s/v//g'
+}
+
+prepare() {
+  cd "$srcdir/${_pkgbase}"
+  local _c _l
+  for _c in "${_backports[@]}"; do
+    if [[ "${_c}" == *..* ]]; then _l='--reverse'; else _l='--max-count=1'; fi
+    git --no-pager log --oneline "${_l}" "${_c}"
+    git cherry-pick --mainline 1 --no-commit "${_c}"
+  done
+  for _c in "${_reverts[@]}"; do
+    if [[ "${_c}" == *..* ]]; then _l='--reverse'; else _l='--max-count=1'; fi
+    git --no-pager log --oneline "${_l}" "${_c}"
+    git revert --mainline 1 --no-commit "${_c}"
+  done
+  local src
+  for src in "${source[@]}"; do
+      src="${src%%::*}"
+      src="${src##*/}"
+      [[ $src = *.patch ]] || continue
+      msg2 "Applying patch: $src..."
+      patch -Np1 < "../$src"
+  done
+}
+
+build() {
+  cd "$srcdir/${_pkgbase}"
+  make build
+}
+
+package() {
+  cd "$srcdir/${_pkgbase}"
+  make install PREFIX=${pkgdir}/usr NO_RELOAD=true
+}
