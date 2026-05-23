@@ -1,0 +1,51 @@
+# Maintainer: Bernhard Landauer <bernhard@manjaro.org>
+# Maintainer: Philip Müller <philm[at]manjaro[dot]org>
+# Contributor: Sven-Hendrik Haase <svenstaro@archlinux.org>
+# Contributor: Felix Yan <felixonmars@archlinux.org>
+# Contributor: Thomas Baechler <thomas@archlinux.org>
+
+_linuxprefix=linux617-rt
+
+pkgname="${_linuxprefix}-nvidia-575xx"
+pkgver=575.64.05
+pkgrel=7
+pkgdesc="NVIDIA kernel modules for ${_linuxprefix}"
+arch=('x86_64')
+url="https://www.nvidia.com/"
+license=('custom')
+groups=("${_linuxprefix}-extramodules")
+depends=("${_linuxprefix}" "nvidia-575xx-utils=${pkgver}" 'libglvnd')
+makedepends=("${_linuxprefix}-headers" "nvidia-575xx-dkms=$pkgver")
+provides=("nvidia=${pkgver}" 'NVIDIA-MODULE')
+options=(!strip)
+source=(nvidia-6.17.patch
+        nvidia-6.17-580.65.06.patch)
+
+prepare() {
+  mkdir -p nvidia/${pkgver}/source_patched
+  cp -av /usr/src/nvidia-${pkgver}/* nvidia/${pkgver}/source_patched
+  cd nvidia/${pkgver}/source_patched
+  patch -p1 -i ../../../nvidia-6.17.patch
+  #patch -p1 -i ../../../nvidia-6.17-580.65.06.patch
+  cd ..
+  ln -sfv source_patched source
+}
+
+build() {
+    _kernver="$(cat /usr/src/${_linuxprefix}/version)"
+
+    fakeroot dkms build --dkmstree "${srcdir}" -m nvidia/${pkgver} -k ${_kernver}
+}
+
+package() {
+    _kernver="$(cat /usr/src/${_linuxprefix}/version)"
+
+    install -Dt "${pkgdir}/usr/lib/modules/${_kernver}/extramodules" -m644 nvidia/${pkgver}/${_kernver}/${CARCH}/module/*.ko.zst
+
+    # compress each module individually
+    find "$pkgdir" -name '*.ko' -exec zstd --rm -19 {} +
+
+    install -Dm644 /usr/share/licenses/nvidia-575xx-dkms/LICENSE "${pkgdir}/usr/share/licenses/${pkgname}/LICENSE"
+}
+sha256sums=('0ef7ab7a655052144b4789abb4219018cce1abf0c957a9fd92801b264452940e'
+            '68c9403f0b1bf08db98294506ac9009071d627ab110057e8c417e5a004f3b7e1')
