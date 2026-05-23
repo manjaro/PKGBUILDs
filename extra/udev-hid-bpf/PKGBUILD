@@ -1,0 +1,45 @@
+# Maintainer: Mark Wagie <mark at manjaro dot org>
+# Contributor: kpcyrd <kpcyrd[at]archlinux[dot]org>
+
+pkgname=udev-hid-bpf
+pkgver=2.2.0.20251121
+_pkgver="$(sed 's/\(.*\)\./\1-/' <<< "${pkgver}")"
+pkgrel=0.1
+pkgdesc='An automatic HID-BPF loader based on udev events written in rust'
+url='https://gitlab.freedesktop.org/libevdev/udev-hid-bpf'
+arch=('x86_64')
+license=('GPL-2.0-or-later')
+depends=(
+  'glibc'
+  'libbpf'
+  'libelf'
+  'libgcc'
+  'systemd-libs' 'libudev.so'
+  'zlib' 'libz.so'
+)
+makedepends=(
+  'bpf'
+  'clang'
+  'meson'
+  'rust'
+)
+source=(https://gitlab.freedesktop.org/libevdev/${pkgname}/-/archive/${_pkgver}/${pkgname}-${_pkgver}.tar.gz)
+sha256sums=('fbf21cbbcc81746fdeefa15259d46abcb28f8daaf70ec2af920b68cca8b44a95')
+
+prepare() {
+  cd "${pkgname}-${_pkgver}"
+  cargo fetch --target "$(rustc --print host-tuple)"
+}
+
+build() {
+  export CFLAGS+=" -ffat-lto-objects"
+  arch-meson "${pkgname}-${_pkgver}" build \
+    -Dudevdir=/usr/lib/udev \
+    -Dbpfs=stable \
+    -Dtests=disabled
+  meson compile -C build
+}
+
+package() {
+  meson install -C build --no-rebuild --destdir "$pkgdir"
+}
