@@ -1,0 +1,26 @@
+# Maintainer: Mark Wagie <mark at manjaro dot org>
+
+pkgname=refind-drivers
+pkgver=1.11
+pkgrel=1
+pkgdesc="Free Software EFI/UEFI file system drivers for rEFInd"
+arch=('x86_64')
+url="https://efi.akeo.ie"
+license=('GPL-3.0-or-later')
+depends=('refind')
+source=("https://github.com/pbatard/efifs/releases/download/v$pkgver/exfat_x64.efi"
+        "https://github.com/pbatard/efifs/releases/download/v$pkgver/f2fs_x64.efi"
+        "https://github.com/pbatard/efifs/releases/download/v$pkgver/jfs_x64.efi"
+        "https://github.com/pbatard/efifs/releases/download/v$pkgver/nilfs2_x64.efi"
+        "https://github.com/pbatard/efifs/releases/download/v$pkgver/xfs_x64.efi"
+        "https://github.com/pbatard/efifs/releases/download/v$pkgver/zfs_x64.efi")
+sha256sums=('4235ef6e1c3ce309d183602ed477eb82c3090e29ec58516f35bbbebbb516a722'
+            '6864298ee406812b28ce631c7342f78f2f813709482cf5092066027106419974'
+            '10e8d7a59a26389d0f47758adf3ff898d28bef138f3610d69dde008b8f5401af'
+            '5b5fb9ee71cdd8787ae9dc5532038674447f8e8c3279dd0257e5d2070154bbf9'
+            'a365d7655a719e9be564c9d120585a858db95caf02dd3f9692772a774e759fa1'
+            '2d731fedede0efef5af1e0d03656d9a1765de0a4ea70c8b1dc51c1a3883e3893')
+
+package () {
+  install -Dm644 *.efi -t "$pkgdir/usr/share/refind/drivers_x64/"
+}
