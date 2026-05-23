@@ -1,0 +1,17 @@
+post_install() {
+  echo "Enabling optimus-manager service..."
+  systemctl enable --now optimus-manager
+}
+
+pre_remove() {
+  echo "Disabling optimus-manager service..."
+  systemctl disable --now optimus-manager
+}
+
+post_remove() {
+  echo "Cleaning up auto-generated optimus-manager Xorg conf"
+  xorg_conf=/etc/X11/xorg.conf.d/10-optimus-manager.conf
+  if [ -f "$xorg_conf" ]; then
+    rm $xorg_conf
+  fi
+}

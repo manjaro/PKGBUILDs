@@ -1,0 +1,93 @@
+# Maintainer: Mark Wagie <mark at manjaro dot org>
+# Contributor: Bernhard Landauer <bernhard@manjaro.org>
+# Contributor: Robin Lange <robin dot langenc at gmail dot com>
+
+pkgname=optimus-manager
+pkgver=r740.502a31c
+pkgrel=2
+epoch=1
+pkgdesc="Management utility to handle GPU switching for Optimus laptops"
+arch=('any')
+url="https://github.com/Askannz/optimus-manager"
+license=('MIT')
+depends=(
+  'glxinfo'
+  'python'
+  'python-dbus'
+  'xorg-xrandr'
+)
+makedepends=(
+  'git'
+  'python-build'
+  'python-installer'
+  'python-setuptools'
+  'python-wheel'
+)
+optdepends=(
+  'bbswitch: alternative power switching method'
+  'acpi_call: alternative power switching method'
+)
+conflicts=(
+  'bumblebee'
+  'envycontrol'
+  'supergfxctl'
+)
+backup=(
+  "etc/$pkgname/xorg/integrated-mode/integrated-gpu.conf"
+  "etc/$pkgname/xorg/nvidia-mode/integrated-gpu.conf"
+  "etc/$pkgname/xorg/nvidia-mode/nvidia-gpu.conf"
+  "etc/$pkgname/xorg/hybrid-mode/integrated-gpu.conf"
+  "etc/$pkgname/xorg/hybrid-mode/nvidia-gpu.conf"
+
+  "etc/$pkgname/xsetup-integrated.sh"
+  "etc/$pkgname/xsetup-nvidia.sh"
+  "etc/$pkgname/xsetup-hybrid.sh"
+
+  "etc/$pkgname/nvidia-enable.sh"
+  "etc/$pkgname/nvidia-disable.sh"
+)
+install="$pkgname.install"
+_commit=502a31c9a6175b4ab0c5af4334a9b4da8a39d0b6  # branch/master
+source=("git+https://github.com/Askannz/optimus-manager.git#commit=${_commit}")
+sha256sums=('928c4f529da6a34c3fe7f8ff063b354c67dc450f82ab48ffe1776f943f451017')
+
+pkgver() {
+  cd "$pkgname"
+  printf "r%s.%s" "$(git rev-list --count HEAD)" "$(git rev-parse --short=7 HEAD)"
+}
+
+build() {
+  cd "$pkgname"
+  python -m build --wheel --no-isolation
+}
+
+package() {
+  cd "$pkgname"
+  python -m installer --destdir="$pkgdir" dist/*.whl
+
+  install -Dm644 LICENSE "$pkgdir/usr/share/licenses/$pkgname/LICENSE"
+  install -Dm644 "modules/$pkgname.conf" "$pkgdir/usr/lib/modprobe.d/$pkgname.conf"
+  install -Dm644 "systemd/$pkgname.service" "$pkgdir/usr/lib/systemd/system/$pkgname.service"
+  install -Dm644 "$pkgname.conf" "$pkgdir/usr/share/$pkgname.conf"
+
+  install -Dm644 "systemd/logind/10-$pkgname.conf" "$pkgdir/usr/lib/systemd/logind.conf.d/10-$pkgname.conf"
+  install -Dm755 "systemd/suspend/$pkgname.py" "$pkgdir/usr/lib/systemd/system-sleep/$pkgname.py"
+
+  install -Dm644 "login_managers/sddm/20-$pkgname.conf" "$pkgdir/etc/sddm.conf.d/20-$pkgname.conf"
+  install -Dm644 "login_managers/lightdm/20-$pkgname.conf" "$pkgdir/etc/lightdm/lightdm.conf.d/20-$pkgname.conf"
+
+  install -Dm644 config/xorg/integrated-mode/integrated-gpu.conf "$pkgdir/etc/$pkgname/xorg/integrated-mode/integrated-gpu.conf"
+  install -Dm644 config/xorg/nvidia-mode/nvidia-gpu.conf "$pkgdir/etc/$pkgname/xorg/nvidia-mode/nvidia-gpu.conf"
+  install -Dm644 config/xorg/nvidia-mode/integrated-gpu.conf "$pkgdir/etc/$pkgname/xorg/nvidia-mode/integrated-gpu.conf"
+  install -Dm644 config/xorg/hybrid-mode/integrated-gpu.conf "$pkgdir/etc/$pkgname/xorg/hybrid-mode/integrated-gpu.conf"
+  install -Dm644 config/xorg/hybrid-mode/nvidia-gpu.conf "$pkgdir/etc/$pkgname/xorg/hybrid-mode/nvidia-gpu.conf"
+
+  install -Dm755 config/xsetup-nvidia.sh "$pkgdir/etc/$pkgname/xsetup-nvidia.sh"
+  install -Dm755 config/xsetup-hybrid.sh "$pkgdir/etc/$pkgname/xsetup-hybrid.sh"
+  install -Dm755 config/xsetup-integrated.sh "$pkgdir/etc/$pkgname/xsetup-integrated.sh"
+
+  install -Dm755 config/nvidia-enable.sh "$pkgdir/etc/$pkgname/nvidia-enable.sh"
+  install -Dm755 config/nvidia-disable.sh "$pkgdir/etc/$pkgname/nvidia-disable.sh"
+
+  install -Dm644 "completion/zsh/_${pkgname}" -t "$pkgdir/usr/share/zsh/site-functions/"
+}
