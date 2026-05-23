@@ -1,0 +1,52 @@
+# Maintainer: Mark Wagie <mark at manjaro dot org>
+
+pkgname=lib32-libstrangle
+pkgver=0.1.1+22+g0273e31
+pkgrel=2
+pkgdesc="Frame rate limiter for Linux/OpenGL (32-bit)"
+arch=('x86_64')
+url="https://gitlab.com/torkel104/libstrangle"
+license=('GPL3')
+depends=('lib32-gcc-libs' 'lib32-glibc' 'libstrangle')
+makedepends=('git')
+provides=('libstrangle_vk.so' 'libstrangle.so' 'libstrangle_nodlsym.so')
+install='libstrangle.install'
+_commit=0273e318e3b0cc759155db8729ad74266b74cb9b
+source=("git+https://gitlab.com/torkel104/libstrangle.git#commit=$_commit"
+        'makefile.patch'
+        'https://gitlab.com/torkel104/libstrangle/-/merge_requests/29.patch')
+sha256sums=('SKIP'
+            'e54d7e885b4218991ad3df1bd92e41abfaf070fd85ac4e53a4f6943345853011'
+            '9422574ef082b9ff329e2e03e78bb12c3f4161830d1bc7187ccc399bafa92476')
+
+pkgver() {
+  cd "$srcdir/libstrangle"
+  git describe --tags | sed 's/-/+/g'
+}
+
+prepare() {
+  cd "$srcdir/libstrangle"
+  patch -Np1 -i ../makefile.patch
+
+  # Bump vulkan manifest api_version
+  # https://gitlab.com/torkel104/libstrangle/-/merge_requests/27
+  sed -i 's/1.1.125/1.3.251/g' src/vulkan/libstrangle_vk.json
+
+  # Fix build with GCC 13
+  patch -Np1 -i ../29.patch
+}
+
+build() {
+  cd "$srcdir/libstrangle"
+  make 32-bit
+}
+
+package() {
+  cd "$srcdir/libstrangle"
+  make DESTDIR="$pkgdir" install-32
+
+  install -d "$pkgdir/etc/ld.so.conf.d/"
+  echo '/usr/lib32/libstrangle/' > "$pkgdir/etc/ld.so.conf.d/$pkgname.conf"
+
+  rm -rf "$pkgdir/usr/share/implicit_layer.d/"
+}

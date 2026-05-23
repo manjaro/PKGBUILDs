@@ -1,0 +1,44 @@
+diff --unified --recursive --text a/makefile b/makefile
+--- a/makefile	2023-01-17 13:17:41.644975249 -0700
++++ b/makefile	2023-01-17 13:32:07.363886820 -0700
+@@ -1,16 +1,16 @@
+ CC=gcc
+ INC=-Isrc
+-CFLAGS=-rdynamic -fPIC -shared -Wall -std=c99 -fvisibility=hidden $(INC)
+-LDFLAGS=-Wl,-z,relro,-z,now
++CFLAGS+=-rdynamic -fPIC -shared -Wall -std=c99 -fvisibility=hidden $(INC)
++LDFLAGS+=-Wl,-z,relro,-z,now
+ LDLIBS=-ldl -lrt -lc
+ 
+-prefix=/usr/local
++prefix=/usr
+ exec_prefix=$(prefix)
+ bindir=$(exec_prefix)/bin
+ libdir=$(exec_prefix)/lib
+ datarootdir=$(prefix)/share
+-LIB32_PATH=$(libdir)/libstrangle/lib32
+-LIB64_PATH=$(libdir)/libstrangle/lib64
++LIB32_PATH=$(prefix)/lib32/libstrangle
++LIB64_PATH=$(libdir)/libstrangle
+ 
+ SOURCEDIR=src
+ BUILDDIR=build
+@@ -18,8 +18,8 @@
+ GL_SOURCES=$(COMMON_SOURCES) $(wildcard $(SOURCEDIR)/opengl/*.c)
+ 
+ CXX=g++
+-CXXFLAGS= -pthread -rdynamic -fPIC -shared -Wall -std=gnu++17 -fvisibility=hidden -Iinclude $(INC) -DVK_USE_PLATFORM_XLIB_KHR -DHAVE_PTHREAD -DHAVE_TIMESPEC_GET
+-LDXXFLAGS=
++CXXFLAGS+= -pthread -rdynamic -fPIC -shared -Wall -std=gnu++17 -fvisibility=hidden -Iinclude $(INC) -DVK_USE_PLATFORM_XLIB_KHR -DHAVE_PTHREAD -DHAVE_TIMESPEC_GET
++LDXXFLAGS+=
+ LDXXLIBS=-lrt
+ VK_SOURCES=\
+ 	$(COMMON_SOURCES) \
+@@ -88,7 +88,6 @@
+ 
+ install-ld: ld
+ 	install -m 0644 -D -T $(BUILDDIR)/libstrangle.conf $(DESTDIR)/etc/ld.so.conf.d/libstrangle.conf
+-	if [ -z "$(DESTDIR)" ]; then ldconfig; fi
+ 
+ install-32: 32-bit
+ 	install -m 0755 -D -T $(BUILDDIR)/libstrangle32.so $(DESTDIR)$(LIB32_PATH)/libstrangle.so
