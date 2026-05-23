@@ -1,0 +1,4 @@
+[linux-firmware]
+source="archpkg"
+#source = "git"
+#git = "https://gitlab.com/kernel-firmware/linux-firmware.git"
