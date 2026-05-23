@@ -1,0 +1,251 @@
+# Maintainer: Bernhard Landauer <bernhard@manjaro.org>
+# Maintainer: Philip Müller <philm[at]manjaro[dot]org>
+# Archlinux maintainers:
+# Tobias Powalowski <tpowa@archlinux.org>
+# Thomas Baechler <thomas@archlinux.org>
+
+_basekernel=6.8
+_basever=${_basekernel//.}
+_kernelname=-MANJARO
+pkgbase=linux${_basever}
+pkgname=("$pkgbase" "$pkgbase-headers")
+pkgver=6.8.12
+pkgrel=3
+arch=('x86_64')
+url="https://www.kernel.org/"
+license=('GPL2')
+makedepends=(bc docbook-xsl libelf pahole python-sphinx git inetutils kmod xmlto cpio perl tar xz)
+options=('!strip')
+source=(#linux-${_commit}.zip::https://codeload.github.com/torvalds/linux/zip/${_commit}
+        https://git.kernel.org/torvalds/t/linux-${_basekernel}.tar.gz
+        https://www.kernel.org/pub/linux/kernel/v6.x/patch-${pkgver}.xz
+        config
+        # Upstream Patches
+        0001-amd-fix-shutdown-reboot.patch::https://lore.kernel.org/amd-gfx/20240526125908.2742-1-mario.limonciello@amd.com/raw
+        0001-v2-bluetooth-fix-connection-setup-in-l2cap_connect-kernel-test-robot.patch::https://lore.kernel.org/linux-bluetooth/ad69720e0ba720209cb04240fbc3c5ff059accbc.1717945321.git.pav@iki.fi/raw
+        # ARCH Patches
+        0101-ZEN_Add_sysctl_and_CONFIG_to_disallow_unprivileged_CLONE_NEWUSER.patch
+        0102-drivers-firmware-skip-simpledrm-if-nvidia-drm.modese.patch
+        0103_default_to_max_ASLR_bits.patch
+        # Realtek patch
+        0999-patch_realtek.patch
+        # ROG ALLY Patches
+        v14.7-0001-HID-asus-fix-more-n-key-report-descriptors-if-.patch
+        v14.7-0002-HID-asus-make-asus_kbd_init-generic-remove-rog.patch
+        v14.7-0003-HID-asus-add-ROG-Ally-N-Key-ID-and-keycodes.patch
+        v14.7-0004-HID-asus-add-ROG-Ally-xpad-settings.patch
+        0007-mt7921e_Perform_FLR_to_recovery_the_device.patch
+        # Additional ALLY patches
+        ROG-ALLY-NCT6775-PLATFORM.patch
+        0001-ALLY_iio_imu_bmi323_Add_ACPI_Match_Table.patch
+        # OrangePi Neo patches
+        0001-OrangePi-Neo-panel-orientation-quirk.patch
+        0001-iio_imu_Add_driver_for_Bosch_BMI260_IMU.patch
+        # OXP Sensors
+        https://github.com/torvalds/linux/commit/692cf83.patch
+        0001-oxp-sensors-hwmon-Add-OrangePi-Neo-PWM-fan-control.patch
+        0002-oxp-sensors-hwmon-Add-OneXPlayer-2-and-OneXFly.patch
+        0003-oxp-sensors-hwmon-Add-new-AYANEO-models.patch
+        0004-oxp-sensors-hwmon-Add-GPD-Win-Mini.patch
+)
+
+if [[ ! -z "$_commit" ]]; then
+  _srcdir="linux-${_commit}"
+elif [[ ! -z "$_rc" ]]; then
+  _srcdir="linux-${_basekernel}-${_rc}"
+else
+  _srcdir="linux-${_basekernel}"
+fi
+
+sha256sums=('87eebb4c5d35b5c71e2b1dbdd106be6e6ccc0ee3c3ba0602a3fc4d9d169a6b93'
+            'c4d18b99e4413fd8be437951f7448c2dbb227b393dd37552541ccf9ba527a0b4'
+            '0163f1fff581224d9847b4d526be0313db47701760b7f952a3afae130f39d9c4'
+            '0c02dda000e0ec3b4f3dd65b00adf365931b04ad5ed9fe590ff7a3f77dfa992c'
+            '691a362486ce9e52dab722caff5fbb953b672e614ebecc43854c9d1a9ce80ca1'
+            '888a89ec67433ddfd71ba187a7356ca60270dbe51d6df7211e3930f13121ba8c'
+            'e1d17690dd21e8d5482b63ca66bfe6b478d39e8e8b59eedd53adb0a55ebc308d'
+            '6400a06e6eb3a24b650bc3b1bba9626622f132697987f718e7ed6a5b8c0317bc'
+            'a99b684fe5bc7fdacc6f5b1f2b6593672fc5d1e676c4de03ec29723747fc574b'
+            'b099ae83a3b561b8bff8b32b44b6f4835b99eb150c2314177aa0bc8ca96e2ead'
+            '10b60663195a65ec3b0f50b49e4c0af952369ee5afe95e11a69ffccefc020eb2'
+            '3c8b877dfaf85acf45b54c85a44fa269aa1512ea3781fe551cf6d4e2d69c992d'
+            '73aa4be8c1abcf1b24c9a5c5072e68da3da82df807f3ff49660a100d7634da1d'
+            'd673d034fbcd80426fd8d9c6af56537c5fe5b55fe49d74e313474d7fc285ecc1'
+            'cfcd5c177423df8b7b98b0500fe7ab0757f895ed945c33e205963f0069c7a3be'
+            'f0bb1d5189711dca26da71406890455740b08fd68846e1127435a398f6614526'
+            'aa2ff6edca0177b864868fdc2752d3a0eaaf5b801bd17e5c59dfd78999226d83'
+            'e58b6631da6dcc302984c30882276026a449228833cfb01d157a85ff1064080e'
+            '7aad8252ef1f98447b60304c4ddc1914f41c957847e07b0678760fbe034e7f19'
+            'c5906e9afc379a45bf39e9410a3c02f70d33f5fea9bf049ac7d44a83c0152c12'
+            'e14bf6add7e20359b549ead938c9698bda4f88163041c3b2e09cf0aca8055a0c'
+            '122d5e0ea8fc2c867cec0bf5d90c7da70c5541f4881781926d761f909ecd2649'
+            'b84ef8f5907cb35d89b05da7d638a469bac01bb10edc3373497d5feb630a68e6')
+
+prepare() {
+  cd "$_srcdir"
+
+  # add upstream patch
+  if [[ -z "$_rc" ]] && [[ -e "../patch-${pkgver}" ]]; then
+    msg "add upstream patch"
+    patch -p1 -i "../patch-${pkgver}"
+  fi
+
+  local src
+  for src in "${source[@]}"; do
+      src="${src%%::*}"
+      src="${src##*/}"
+      [[ $src = *.patch ]] || continue
+      msg2 "Applying patch: $src..."
+      patch -Np1 < "../$src"
+  done
+
+  msg2 "add config"
+  cat "../config" > ./.config
+
+  if [ "${_kernelname}" != "" ]; then
+    sed -i "s|CONFIG_LOCALVERSION=.*|CONFIG_LOCALVERSION=\"${_kernelname}\"|g" ./.config
+    sed -i "s|CONFIG_LOCALVERSION_AUTO=.*|CONFIG_LOCALVERSION_AUTO=n|" ./.config
+  fi
+
+  msg "set patchlevel to 8"
+  sed -ri "s|^(PATCHLEVEL =).*|\1 8|" Makefile
+
+  msg "set extraversion to pkgrel"
+  sed -ri "s|^(EXTRAVERSION =).*|\1 -${pkgrel}|" Makefile
+
+  msg "don't run depmod on 'make install'"
+  # We'll do this ourselves in packaging
+  sed -i '2iexit 0' scripts/depmod.sh
+
+  msg "get kernel version"
+  make prepare
+
+  msg "rewrite configuration"
+  yes "" | make config >/dev/null
+}
+
+build() {
+  cd "$_srcdir"
+
+  msg "build"
+  make ${MAKEFLAGS} LOCALVERSION= bzImage modules
+}
+
+package_linux68() {
+  pkgdesc="The ${pkgbase/linux/Linux} kernel and modules"
+  depends=('coreutils' 'linux-firmware' 'kmod' 'initramfs')
+  optdepends=('wireless-regdb: to set the correct wireless channels of your country')
+  provides=("linux=${pkgver}" VIRTUALBOX-GUEST-MODULES WIREGUARD-MODULE KSMBD-MODULE)
+  install=EOL.install
+
+  cd "$_srcdir"
+
+  # get kernel version
+  _kernver="$(make LOCALVERSION= kernelrelease)"
+
+  mkdir -p "${pkgdir}"/{boot,usr/lib/modules}
+  ZSTD_CLEVEL=19 make LOCALVERSION= INSTALL_MOD_PATH="${pkgdir}/usr" \
+  INSTALL_MOD_STRIP=1 modules_install
+
+  # systemd expects to find the kernel here to allow hibernation
+  # https://github.com/systemd/systemd/commit/edda44605f06a41fb86b7ab8128dcf99161d2344
+  cp arch/x86/boot/bzImage "${pkgdir}/usr/lib/modules/${_kernver}/vmlinuz"
+
+  # Used by mkinitcpio to name the kernel
+  echo "${pkgbase}" | install -Dm644 /dev/stdin "${pkgdir}/usr/lib/modules/${_kernver}/pkgbase"
+  echo "${_basekernel}-${CARCH}" | install -Dm644 /dev/stdin "${pkgdir}/usr/lib/modules/${_kernver}/kernelbase"
+
+  # add kernel version
+  echo "${pkgver}-${pkgrel}-MANJARO x64" > "${pkgdir}/boot/${pkgbase}-${CARCH}.kver"
+
+  # remove build and source links
+  rm "${pkgdir}"/usr/lib/modules/${_kernver}/build
+
+  # now we call depmod...
+  depmod -b "${pkgdir}/usr" -F System.map "${_kernver}"
+}
+
+package_linux68-headers() {
+  pkgdesc="Header files and scripts for building modules for ${pkgbase/linux/Linux} kernel"
+  depends=('gawk' 'python' 'libelf' 'pahole')
+  provides=("linux-headers=$pkgver")
+
+  cd "$_srcdir"
+  local _builddir="${pkgdir}/usr/lib/modules/${_kernver}/build"
+
+  # add real version for building modules and running depmod from hook
+  echo "${_kernver}" |
+    install -Dm644 /dev/stdin "${_builddir}/version"
+
+  install -Dt "${_builddir}" -m644 Makefile .config Module.symvers
+  install -Dt "${_builddir}/kernel" -m644 kernel/Makefile
+  install -Dt "${_builddir}" -m644 vmlinux
+
+  mkdir "${_builddir}/.tmp_versions"
+
+  cp -t "${_builddir}" -a include scripts
+
+  install -Dt "${_builddir}/arch/x86" -m644 "arch/x86/Makefile"
+  install -Dt "${_builddir}/arch/x86/kernel" -m644 "arch/x86/kernel/asm-offsets.s"
+
+  cp -t "${_builddir}/arch/x86" -a "arch/x86/include"
+
+  install -Dt "${_builddir}/drivers/md" -m644 drivers/md/*.h
+  install -Dt "${_builddir}/net/mac80211" -m644 net/mac80211/*.h
+
+  # https://bugs.archlinux.org/task/13146
+  install -Dt "${_builddir}/drivers/media/i2c" -m644 drivers/media/i2c/msp3400-driver.h
+
+  # https://bugs.archlinux.org/task/20402
+  install -Dt "${_builddir}/drivers/media/usb/dvb-usb" -m644 drivers/media/usb/dvb-usb/*.h
+  install -Dt "${_builddir}/drivers/media/dvb-frontends" -m644 drivers/media/dvb-frontends/*.h
+  install -Dt "${_builddir}/drivers/media/tuners" -m644 drivers/media/tuners/*.h
+
+  # https://bugs.archlinux.org/task/71392
+  install -Dt "${_builddir}/drivers/iio/common/hid-sensors" -m644 drivers/iio/common/hid-sensors/*.h
+
+  # add xfs and shmem for aufs building
+  mkdir -p "${_builddir}"/{fs/xfs,mm}
+
+  # copy in Kconfig files
+  find . -name Kconfig\* -exec install -Dm644 {} "${_builddir}/{}" \;
+
+  # add objtool for external module building and enabled VALIDATION_STACK option
+  install -Dt "${_builddir}/tools/objtool" tools/objtool/objtool
+
+  # https://forum.manjaro.org/t/90629/39
+  install -Dt "${_builddir}/tools/bpf/resolve_btfids" tools/bpf/resolve_btfids/resolve_btfids
+
+  # remove unneeded architectures
+  local _arch
+  for _arch in "${_builddir}"/arch/*/; do
+    [[ ${_arch} == */x86/ ]] && continue
+    rm -r "${_arch}"
+  done
+
+  # remove documentation files
+  rm -r "${_builddir}/Documentation"
+
+  # strip scripts directory
+  local file
+  while read -rd '' file; do
+    case "$(file -bi "$file")" in
+      application/x-sharedlib\;*)      # Libraries (.so)
+        strip $STRIP_SHARED "$file" ;;
+      application/x-archive\;*)        # Libraries (.a)
+        strip $STRIP_STATIC "$file" ;;
+      application/x-executable\;*)     # Binaries
+        strip $STRIP_BINARIES "$file" ;;
+      application/x-pie-executable\;*) # Relocatable binaries
+        strip $STRIP_SHARED "$file" ;;
+    esac
+  done < <(find "${_builddir}" -type f -perm -u+x ! -name vmlinux -print0 2>/dev/null)
+  strip $STRIP_STATIC "${_builddir}/vmlinux"
+
+  echo "Adding symlink..."
+  mkdir -p "${pkgdir}/usr/src"
+  ln -sr "${_builddir}" "${pkgdir}/usr/src/${pkgbase}"
+
+  # remove unwanted files
+  find ${_builddir} -name '*.orig' -delete
+}
