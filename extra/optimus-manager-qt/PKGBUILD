@@ -1,0 +1,46 @@
+# Maintainer: Bernhard Landauer <bernhard@manjaro.org>
+# Contributor: Shatur <genaloner@gmail.com>
+
+pkgname=('optimus-manager-qt' 'optimus-manager-plasma')
+pkgbase=optimus-manager-qt
+pkgver=1.6.9
+pkgrel=4
+pkgdesc="An interface for Optimus Manager that allows switching GPUs on Optimus laptops"
+arch=('x86_64')
+url="https://github.com/Shatur/optimus-manager-qt"
+license=('GPL-3.0-or-later')
+depends=('hicolor-icon-theme' 'kiconthemes5' 'knotifications5' 'optimus-manager'
+         'qt5-base' 'qt5-svg' 'qt5-x11extras')
+makedepends=('cmake' 'extra-cmake-modules' 'qt5-tools')
+source=("$url/releases/download/$pkgver/$pkgbase-$pkgver-source.tar.gz")
+sha256sums=('0786bdd6ac81943a8fa4432f8406028488eaaf81c33d9e754907bf40a492f901')
+
+build() {
+  cmake -B build-qt -S "$pkgbase-$pkgver" \
+    -DCMAKE_BUILD_TYPE='None' \
+    -DCMAKE_INSTALL_PREFIX='/usr' \
+    -DWITH_PLASMA='OFF' \
+    -Wno-dev
+  cmake --build build-qt
+
+  cmake -B build-plasma -S "$pkgbase-$pkgver" \
+    -DCMAKE_BUILD_TYPE='None' \
+    -DCMAKE_INSTALL_PREFIX='/usr' \
+    -DWITH_PLASMA='ON' \
+    -Wno-dev
+  cmake --build build-plasma
+}
+
+package_optimus-manager-qt() {
+  depends=('hicolor-icon-theme' 'optimus-manager' 'qt5-base' 'qt5-svg' 'qt5-x11extras')
+
+  DESTDIR="$pkgdir" cmake --install build-qt
+}
+
+package_optimus-manager-plasma() {
+  pkgdesc+=" (with extended Plasma support)"
+  provides=('optimus-manager-qt')
+  conflicts=('optimus-manager-qt')
+
+  DESTDIR="$pkgdir" cmake --install build-plasma
+}
