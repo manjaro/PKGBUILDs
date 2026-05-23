@@ -1,0 +1,51 @@
+# Maintainer: Bernhard Landauer <bernhard@manjaro.org>
+# Maintainer: Philip Müller <philm[at]manjaro[dot]org>
+# Contributor: Sven-Hendrik Haase <svenstaro@archlinux.org>
+# Contributor: Felix Yan <felixonmars@archlinux.org>
+# Contributor: Thomas Baechler <thomas@archlinux.org>
+
+_linuxprefix=linux70
+
+pkgname="${_linuxprefix}-nvidia-575xx-open"
+pkgver=575.64.05
+pkgrel=0.1
+pkgdesc="NVIDIA open kernel modules for ${_linuxprefix}"
+arch=('x86_64')
+url="https://www.nvidia.com/"
+license=('MIT AND GPL-2.0-only')
+groups=("${_linuxprefix}-extramodules")
+depends=("${_linuxprefix}" "nvidia-575xx-utils=${pkgver}" 'libglvnd')
+makedepends=("${_linuxprefix}-headers" "nvidia-575xx-open-dkms=$pkgver")
+provides=("nvidia=${pkgver}" 'NVIDIA-MODULE')
+conflicts=("${_linuxprefix}-nvidia-575xx")
+options=('!strip' '!debug')
+source=('linux70.patch')
+
+prepare() {
+  mkdir -p nvidia/${pkgver}/source_patched
+  cp -av /usr/src/nvidia-${pkgver}/* nvidia/${pkgver}/source_patched
+  cd nvidia/${pkgver}/source_patched/kernel-open
+  patch -p2 -i $srcdir/linux70.patch
+  # https://github.com/torvalds/linux/commit/614d850efda98e4455e4f2b55e64864f68a4e370
+  sed -i -e 's/get_dev_pagemap(page_to_pfn(page), NULL);/get_dev_pagemap(page_to_pfn(page));/' nvidia-uvm/uvm_va_range_device_p2p.c
+  cd ../..
+  ln -sfv source_patched source
+}
+
+build() {
+    _kernver="$(cat /usr/src/${_linuxprefix}/version)"
+
+    fakeroot dkms build --dkmstree "${srcdir}" -m nvidia/${pkgver} -k ${_kernver}
+}
+
+package() {
+    _kernver="$(cat /usr/src/${_linuxprefix}/version)"
+
+    install -Dt "${pkgdir}/usr/lib/modules/${_kernver}/extramodules" -m644 nvidia/${pkgver}/${_kernver}/${CARCH}/module/*.ko.zst
+
+    # compress each module individually
+    find "$pkgdir" -name '*.ko' -exec zstd --rm -19 {} +
+
+    install -Dm644 /usr/share/licenses/nvidia-575xx-open-dkms/LICENSE "${pkgdir}/usr/share/licenses/${pkgname}/LICENSE"
+}
+sha256sums=('d8767d75726119493955e235509c49bd6757c5f7c22410b2a1a3b02c41155486')
