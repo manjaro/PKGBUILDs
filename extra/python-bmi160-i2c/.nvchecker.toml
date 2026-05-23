@@ -1,3 +1,0 @@
-[python-bmi160-i2c]
-source = "pypi"
-pypi = "BMI160_i2c"
