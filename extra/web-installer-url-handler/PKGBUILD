@@ -1,0 +1,18 @@
+pkgname=web-installer-url-handler
+pkgver=2.3
+pkgrel=1
+pkgdesc="Install software from software.manjaro.org"
+arch=('any')
+url="https://gitlab.manjaro.org/packages/community/jade/web-installer-url-handler"
+license=('GPL')
+depends=('pyside6' 'python-manjaro-sdk')
+install="$pkgname.install"
+source=("$pkgname"
+        "$pkgname.desktop")
+sha256sums=('f0d74a4c006257677212d9f4f3c53ebbbe05aa83cd21a3c3d8d5b19ef7deabf3'
+            '669fdfa94b78948b1bafd4f358d9d0f868e5fcbcd680cf6813d8f295f299ca4e')
+
+package() {
+	install -Dm755 "$pkgname" -t "$pkgdir/usr/share/webapps/software-center-web-jak"
+	install -Dm644 "$pkgname.desktop" -t "$pkgdir/usr/share/applications"
+}

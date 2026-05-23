@@ -1,0 +1,173 @@
+#!/usr/bin/env python
+import sys
+import subprocess
+from Manjaro.SDK import PackageManager
+from PySide6.QtWidgets import QApplication, QMessageBox, QProgressDialog, QPushButton, QSizePolicy
+from PySide6.QtCore import Qt
+      
+
+class DetachedInstaller(QProgressDialog):
+    
+    def __init__(self):
+        super().__init__()
+        PackageManager.Pamac.on_msg_emit = self.on_msg_emit
+        PackageManager.Pamac.on_transaction_finish = self.on_transaction_finish
+        self.pamac = PackageManager.Pamac()
+        self.action = ""
+        self.message = ""
+        self.pamac.options["upgrade"] = True
+        self.install_plugin = False
+        self.setAutoClose(True)
+        btn = QPushButton('Cancel')
+        btn.setEnabled(False)
+        self.setCancelButton(btn)
+        self.setValue(0)
+        self.setAutoFillBackground(True)
+        self.setWindowModality(Qt.WindowModal)
+        self.setLabelText("Installing")
+        self.setSizeGripEnabled(False)
+        self.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
+        self.setWindowFlag(Qt.SplashScreen, True)
+        self.setWindowFlags(self.windowFlags() | Qt.WindowStaysOnTopHint)
+        self.setModal(True)        
+        self.setWindowTitle("Detached Installer")
+        primary_screen = app.primaryScreen()
+        screen = primary_screen.availableGeometry()
+        self.resize(400, self.height())
+        width, height = screen.width() - self.width(), screen.height() - self.height()
+        #self.move(width, height)
+        self.show()
+        self.install()
+        
+
+    def on_transaction_finish(self):
+        self.setValue(100)
+        if self.install_plugin == False:
+            msgBox = QMessageBox()
+            msgBox.setWindowFlag(Qt.SplashScreen, True)
+            msgBox.setWindowFlags(self.windowFlags() | Qt.WindowStaysOnTopHint)
+            msgBox.setText(self.message)
+            msgBox.exec()
+        else:
+            self.create_new_instance()
+
+
+    def on_msg_emit(self, action=None, progress=None, status=None, details=[], message=None):
+        if progress:
+            result = float(progress) * 100
+            value = int(result)
+            self.setValue(value)
+
+        if action and action != self.action:
+            self.message = action
+            self.action = action
+            if status and action:
+                self.setLabelText(status +" "+ action)
+            elif action:
+                self.setLabelText(action)
+        elif message:
+            self.message = message
+            self.setLabelText(message)
+
+
+    def create_new_instance(self):        
+        subprocess.run(sys.argv)
+        sys.exit(app.exec())
+
+
+    def _check_flatpak_support(self):
+        if not self.pamac.flatpak.is_plugin_installed():
+            self.install_plugin = True
+            plugin = "libpamac-flatpak-plugin"
+            self.setLabelText(f"Installing: {plugin}")
+            self.pamac.add_pkgs_to_install([plugin])
+            self.pamac.run()
+        
+
+    def _check_snap_support(self):
+        if not self.pamac.snap.is_plugin_installed():
+            self.install_plugin = True
+            plugin = "libpamac-snap-plugin"
+            self.setLabelText(f"Installing: {plugin}")
+            self.pamac.add_pkgs_to_install([plugin])
+            self.pamac.run()  
+
+
+    def _check_appimage_support(self):  
+        if not self.pamac.appimage.is_plugin_installed():
+            self.install_plugin = True
+            plugin = "appimagelauncher"
+            self.setLabelText(f"Installing: {plugin}")
+            self.pamac.add_pkgs_to_install([plugin])
+            self.pamac.run()
+
+
+    def add_pkgs(self, pkgs):
+        self.setLabelText(f"Adding Native Packages")
+        self.pamac.add_pkgs_to_install(pkgs)
+
+
+    def add_flatpaks(self, pkgs):
+        self.setLabelText(f"Adding Flatpaks")
+        _list = []
+        for p in pkgs:
+            pkg_object = self.pamac.search_flatpaks(p)
+            for pkg in pkg_object:
+                if pkg.get_name() == p:
+                    _list.append(pkg)
+        
+        self.pamac.add_pkgs_to_install(_list, pkg_format="flatpaks")
+
+    
+    def add_appimages(self, pkgs):
+        self.setLabelText(f"Adding Appimages")
+        self.pamac.appimage.install = pkgs
+
+
+    def add_snaps(self, pkgs):
+        self.setLabelText(f"Adding Snaps")
+        _list = []
+        for p in pkgs:
+            pkg_object = self.pamac.search_snaps(p)
+            for pkg in pkg_object:
+                if pkg.get_name() == p:
+                    _list.append(pkg)
+
+        self.pamac.add_pkgs_to_install(_list, pkg_format="snaps")
+
+    def install(self):
+        handler = sys.argv[1].replace("web-pamac://", "")
+        packages = handler.split("&")
+        snap = []
+        flatpak = []
+        package = []
+        appimage = []
+        for pkg in packages:
+            if "snap" in pkg:
+                snap.append(pkg.split("=")[1])
+            elif "flatpak" in pkg:
+                flatpak.append(pkg.split("=")[1])
+            elif "appimage" in pkg:
+                appimage.append(pkg.split("=")[1])
+            else:   
+                package.append(pkg.split("=")[1])        
+        
+        if package:
+            self.add_pkgs(package)
+        if snap:
+            self._check_snap_support()
+            self.add_snaps(snap)
+        if flatpak:
+            self._check_flatpak_support()
+            self.add_flatpaks(flatpak)
+        if appimage:
+            self._check_appimage_support()
+            self.add_appimages(appimage)
+
+        self.pamac.run()
+
+
+if __name__ == '__main__':
+    app = QApplication(sys.argv)
+    DetachedInstaller()
+    sys.exit(app.exec())
