@@ -1,0 +1,76 @@
+# Maintainer: Stefano Capitani <stefanoatmanjarodotorg>
+# Author: Jorge Luis Endres <jlecomputer04@gmail.com>
+
+_commit=3dd24c593bee6332fe49669b1bea55f25297a71e
+pkgname=eggsmaker
+pkgver=25.7.12
+pkgrel=1
+pkgdesc="Eggsmaker - gui for penguins-eggs"
+arch=(x86_64)
+url="https://github.com/jlendres/$pkgname"
+license=('MIT')
+depends=('python' 'tk' 'penguins-eggs')
+makedepends=('git' 'python-pip' 'patchelf' 'gettext')
+
+source=("git+https://github.com/jlendres/$pkgname.git#commit=$_commit")
+sha256sums=('7d85f7628ca1e86a2379c38a62b63c2c25e23b582411f7830f004c1d44d46fae')
+
+pkgver() {
+	cd "$srcdir/$pkgname/src"
+	grep 'version=' version.py | cut -d '"' -f2 | cut -d '"' -f1
+}
+
+prepare() {
+
+   	python -m venv venv_eggsmaker
+    	source venv_eggsmaker/bin/activate
+    	pip install customtkinter pillow nuitka
+    
+    	cd $srcdir/$pkgname
+    	for lang_dir in src/locales/*/LC_MESSAGES; do
+        	if [[ -f "${lang_dir}/$pkganme.po" ]]; then
+            		msgfmt -o "${lang_dir}/$pkgname.mo" "${lang_dir}/$pkgname.po"
+        	fi
+    	done
+}
+
+build() {
+
+    	cd $srcdir/$pkgname
+    	python -m nuitka \
+        	--include-data-dir=assets=assets \
+        	--include-data-dir=src/locales=locales \
+        	--enable-plugin=tk-inter \
+        	--standalone \
+        	src/$pkgname.py
+    
+    	rm -rf $pkgname.build
+}
+
+package() {
+
+    	install -d "$pkgdir"/opt/$pkgname
+    	install -d "$pkgdir"/usr/share/applications
+    	install -d "$pkgdir"/usr/share/icons/hicolor/scalable/apps/
+    	install -d "$pkgdir"/usr/bin
+
+    	cd $srcdir/$pkgname
+    	install -Dm644 assets/$pkgname.svg "$pkgdir"/usr/share/icons/hicolor/scalable/apps/
+    	install -Dm644 assets/$pkgname.desktop "$pkgdir"/usr/share/applications/
+    	cp -r $pkgname.dist/* "$pkgdir"/opt/$pkgname/
+    
+    	for lang_dir in src/locales/*; do
+        	lang=$(basename "$lang_dir")
+        	if [[ -f "${lang_dir}/LC_MESSAGES/$pkgname.mo" ]]; then
+            		install -Dm644 "${lang_dir}/LC_MESSAGES/$pkgname.mo" \
+                	"$pkgdir"/usr/share/locale/"${lang}"/LC_MESSAGES/$pkgname.mo
+        	fi
+    	done
+
+    	find "$pkgdir"/opt/$pkgname/ -type f -exec chmod 644 {} +
+    	find "$pkgdir"/opt/$pkgname/ -type d -exec chmod 755 {} +
+    	chmod +x "$pkgdir"/opt/$pkgname/$pkgname.bin
+
+    	ln -s /opt/$pkgname/$pkgname.bin "$pkgdir"/usr/bin/$pkgname
+}
+
