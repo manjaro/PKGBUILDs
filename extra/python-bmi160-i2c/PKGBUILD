@@ -1,0 +1,31 @@
+# Maintainer: Philip Müller <philm[at]manjaro[dot]org>
+
+pkgname=python-bmi160-i2c
+_name=BMI160_i2c
+pkgver=0.6
+pkgrel=3
+pkgdesc="An I2C driver library to use the BMI160 sensor (acclerometer/gyro)"
+arch=('any')
+url="https://github.com/lefuturiste/BMI160-i2c"
+license=('MIT')
+depends=('python-smbus2')
+makedepends=(
+  'python-build'
+  'python-installer'
+  'python-setuptools'
+  'python-wheel'
+)
+source=("https://files.pythonhosted.org/packages/source/${_name::1}/$_name/$_name-$pkgver.tar.gz")
+sha256sums=('076e1a8c23f22fc1714cea0a0e1fe4d5feafc9210e442b09f98b1bc257d8a2c4')
+
+build() {
+  cd "$_name-$pkgver"
+  python -m build --wheel --no-isolation
+}
+
+package() {
+  cd "$_name-$pkgver"
+  python -m installer --destdir="$pkgdir" dist/*.whl
+
+  install -Dm644 LICENSE -t "$pkgdir/usr/share/licenses/$pkgname/"
+}
