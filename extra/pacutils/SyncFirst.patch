@@ -1,0 +1,112 @@
+ diff --git a/lib/pacutils/config.c b/lib/pacutils/config.c
+index 49a0a28..28178e8 100644
+--- a/lib/pacutils/config.c
++++ b/lib/pacutils/config.c
+@@ -64,6 +64,7 @@ struct _pu_config_setting {
+   {"NoUpgrade",       PU_CONFIG_OPTION_NOUPGRADE},
+   {"NoExtract",       PU_CONFIG_OPTION_NOEXTRACT},
+   {"CacheDir",        PU_CONFIG_OPTION_CACHEDIRS},
++  {"SyncFirst",       PU_CONFIG_OPTION_SYNCFIRST},
+ 
+   {"Usage",           PU_CONFIG_OPTION_USAGE},
+ 
+@@ -304,6 +305,7 @@ void pu_config_free(pu_config_t *config) {
+   FREELIST(config->noupgrade);
+   FREELIST(config->noextract);
+   FREELIST(config->cachedirs);
++  FREELIST(config->syncfirst);
+ 
+   alpm_list_free_inner(config->repos, (alpm_list_fn_free) pu_repo_free);
+   alpm_list_free(config->repos);
+@@ -536,6 +538,7 @@ void pu_config_merge(pu_config_t *dest, pu_config_t *src) {
+   MERGELIST(dest->ignorepkgs, src->ignorepkgs);
+   MERGELIST(dest->ignoregroups, src->ignoregroups);
+   MERGELIST(dest->repos, src->repos);
++  MERGELIST(dest->syncfirst, src->syncfirst);
+ 
+   MERGESL(dest->siglevel, dest->siglevel_mask,
+       src->siglevel, src->siglevel_mask);
+@@ -798,6 +801,9 @@ int pu_config_reader_next(pu_config_reader_t *reader) {
+         case PU_CONFIG_OPTION_CACHEDIRS:
+           APPENDLIST(&config->cachedirs, mini->value);
+           break;
++        case PU_CONFIG_OPTION_SYNCFIRST:
++          APPENDLIST(&config->syncfirst, mini->value);
++          break;
+         case PU_CONFIG_OPTION_PARALLELDOWNLOADS: {
+           char *end;
+           long pd = strtol(mini->value, &end, 10);
+diff --git a/lib/pacutils/config.h b/lib/pacutils/config.h
+index 3750dd2..7332c9c 100644
+--- a/lib/pacutils/config.h
++++ b/lib/pacutils/config.h
+@@ -54,6 +54,7 @@ typedef enum pu_config_option_t {
+   PU_CONFIG_OPTION_NOEXTRACT,
+   PU_CONFIG_OPTION_REPOS,
+   PU_CONFIG_OPTION_CACHEDIRS,
++  PU_CONFIG_OPTION_SYNCFIRST,
+ 
+   PU_CONFIG_OPTION_SERVER,
+ 
+@@ -106,6 +107,7 @@ typedef struct pu_config_t {
+   alpm_list_t *ignorepkgs;
+   alpm_list_t *noextract;
+   alpm_list_t *noupgrade;
++  alpm_list_t *syncfirst;
+ 
+   int cleanmethod;
+ 
+diff --git a/src/pacconf.c b/src/pacconf.c
+index b62aa47..5bf255b 100644
+--- a/src/pacconf.c
++++ b/src/pacconf.c
+@@ -298,6 +298,7 @@ void dump_options(void) {
+   show_list_str("IgnoreGroup", config->ignoregroups);
+   show_list_str("NoUpgrade", config->noupgrade);
+   show_list_str("NoExtract", config->noextract);
++  show_list_str("SyncFirst", config->syncfirst);
+   show_list_str("Architecture", config->architectures);
+ 
+   show_str("XferCommand", config->xfercommand);
+@@ -405,6 +406,8 @@ int list_directives(alpm_list_t *directives) {
+       show_list_str("NoUpgrade", config->noupgrade);
+     } else if (strcasecmp(i->data, "NoExtract") == 0) {
+       show_list_str("NoExtract", config->noextract);
++    } else if (strcasecmp(i->data, "SyncFirst") == 0) {
++      show_list_str("SyncFirst", config->syncfirst);
+     } else if (strcasecmp(i->data, "Architecture") == 0) {
+       show_list_str("Architecture", config->architectures);
+ 
+diff --git a/t/10-config-basic.c b/t/10-config-basic.c
+index 7139054..b50986e 100644
+--- a/t/10-config-basic.c
++++ b/t/10-config-basic.c
+@@ -35,6 +35,7 @@ char buf[] =
+     "IgnorePkg = ignorepkga\n"
+     "IgnorePkg = ignorepkgb\n"
+     " IgnoreGroup = ignoregroupa ignoregroupb \n"
++    " SyncFirst = syncfirsta syncfirstb\n"
+     "Architecture = i686\n"
+     "Architecture = x86_64\n"
+     "ParallelDownloads = 3\n"
+@@ -109,7 +110,7 @@ int main(void) {
+ 
+   while (pu_config_reader_next(reader) != -1);
+ 
+-  tap_plan(40);
++  tap_plan(43);
+ 
+   tap_ok(reader->eof, "eof reached");
+   tap_ok(!reader->error, "no error");
+@@ -168,6 +169,11 @@ int main(void) {
+   is_str_list(i, "holdpkgb", "HoldPkg b");
+   is_list_exhausted(i, "holdpkgs");
+ 
++  i = config->syncfirst;
++  is_str_list(i, "syncfirsta", "SyncFirst a");
++  is_str_list(i, "syncfirstb", "SyncFirst b");
++  is_list_exhausted(i, "syncfirst");
++
+   tap_ok(config->repos != NULL, "repo list");
+ 
+   repo = config->repos->data;
