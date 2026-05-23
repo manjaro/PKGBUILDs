@@ -1,0 +1,25 @@
+# Maintainer: Bernhard Landauer <bernhard@manjaro.org>
+# Maintainer: Julian Brost <julian@0x4a42.net>
+
+pkgname=mkpasswd
+_repo=whois
+pkgver=5.4.2
+pkgrel=1
+pkgdesc="Tool for creating password hashes suitable for /etc/shadow"
+arch=('i686' 'x86_64')
+url="https://github.com/rfc1036/$_repo"
+license=('GPL')
+depends=('glibc')
+makedepends=('perl')
+source=("$url/archive/v$pkgver.tar.gz")
+sha256sums=('d928b981dc949a2ea1d0512d20da74707953369f889a88d8f84f1a4b05b822d2')
+
+build() {
+  cd $_repo-$pkgver
+  make prefix=/usr CFLAGS="$CFLAGS $CPPFLAGS" $pkgname
+}
+
+package() {
+  cd $_repo-$pkgver
+  make prefix=/usr BASEDIR="$pkgdir" install-$pkgname
+}
