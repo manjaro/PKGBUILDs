@@ -1,0 +1,53 @@
+# Maintainer: Mark Wagie <mark at manjaro dot org>
+
+pkgname=snapper-gui
+pkgver=0.1.r8.g1915750
+pkgrel=8
+pkgdesc="GUI for snapper, a tool for Linux filesystem snapshot management"
+arch=('any')
+url="https://github.com/ricardomv/snapper-gui"
+license=('GPL-2.0-or-later')
+depends=(
+  'gtk3'
+  'gtksourceview3'
+  'python'
+  'python-dbus'
+  'python-gobject'
+  'python-setuptools'
+  'snapper'
+)
+makedepends=(
+  'git'
+  'python-build'
+  'python-installer'
+  'python-wheel'
+)
+install="$pkgname.install"
+_commit=191575084a4e951802c32a4177dc704cf435883a  # master
+source=("git+https://github.com/ricardomv/snapper-gui.git#commit=${_commit}"
+        'https://github.com/ricardomv/snapper-gui/pull/59.patch')
+sha256sums=('f54165770a4ece95641d591c53aaa6d616a0d75f0a28110b82885463ff3b2a63'
+            '2770d1ef054c1e089af72d3779e65fcaa33b7fab54eab57e31cfd3ebab6b96e9')
+
+pkgver() {
+  cd "$pkgname"
+  git describe --long | sed 's/^v//;s/\([^-]*-g\)/r\1/;s/-/./g'
+}
+
+prepare() {
+  cd "$pkgname"
+
+  # Remove the outdated "U" mode for open file
+  # https://github.com/ricardomv/snapper-gui/issues/58
+  patch -Np1 -i ../59.patch
+}
+
+build() {
+  cd "$pkgname"
+  python -m build --wheel --no-isolation
+}
+
+package() {
+  cd "$pkgname"
+  python -m installer --destdir="$pkgdir" dist/*.whl
+}

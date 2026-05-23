@@ -1,0 +1,7 @@
+post_install() {
+    echo ">>>"
+    echo ">>> You must create a default config with snapper cli named root first."
+    echo ">>> Run 'snapper -c root create-config /' as root"
+    echo ">>>"
+}
+

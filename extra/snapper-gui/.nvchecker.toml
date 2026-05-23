@@ -1,0 +1,4 @@
+[snapper-gui]
+source = "git"
+git = "https://github.com/ricardomv/snapper-gui.git"
+prefix = "v"
