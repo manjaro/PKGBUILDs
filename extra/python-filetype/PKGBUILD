@@ -1,0 +1,32 @@
+# Maintainer: Mark Wagie <mark at manjaro dot org>
+# Contributor: Felix Yan <felixonmars@archlinux.org>
+
+pkgname=python-filetype
+_name="${pkgname#python-}.py"
+pkgver=1.2.0
+pkgrel=4
+pkgdesc="Infer file type and MIME type of any file/buffer"
+arch=('any')
+url="https://github.com/h2non/filetype.py"
+license=('MIT')
+depends=('python')
+makedepends=('python-build' 'python-installer' 'python-setuptools' 'python-wheel')
+source=("${_name}-$pkgver.tar.gz::$url/archive/refs/tags/v$pkgver.tar.gz")
+sha256sums=('99509dd057a8f9619093b2a0e08cc3f302a682e0fecbfe6ca31f8142dcaf1da7')
+
+build() {
+  cd "${_name}-$pkgver"
+  python -m build --wheel --no-isolation
+}
+
+check() {
+  cd "${_name}-$pkgver"
+  python -m unittest discover
+}
+
+package() {
+  cd "${_name}-$pkgver"
+  python -m installer --destdir="$pkgdir" dist/*.whl
+
+  install -Dm644 LICENSE -t "$pkgdir/usr/share/licenses/$pkgname/"
+}
