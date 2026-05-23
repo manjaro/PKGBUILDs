@@ -1,4 +1,0 @@
-[skippy-xd]
-source = "git"
-git = "https://github.com/dreamcat4/skippy-xd.git"
-prefix = "v"
