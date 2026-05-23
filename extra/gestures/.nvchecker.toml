@@ -1,0 +1,3 @@
+[gestures]
+source = "git"
+git = "https://gitlab.com/nokun/gestures.git"
