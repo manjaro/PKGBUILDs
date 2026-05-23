@@ -1,0 +1,24 @@
+# Maintainer: Mark Wagie <mark at manjaro dot org>
+
+pkgname=nautilus-open-in-ptyxis
+pkgver=r45.9084e8e
+pkgrel=1
+pkgdesc="Open Ptyxis from Nautilus"
+arch=('any')
+url="https://github.com/GustavoWidman/nautilus-open-in-ptyxis"
+license=('GPL-3.0-orlater')
+depends=('nautilus-python')
+makedepends=('git')
+_commit=9084e8e5b8ca4c73957149642609a6524f72a510
+source=("git+https://github.com/GustavoWidman/nautilus-open-in-ptyxis.git#commit=${_commit}")
+sha256sums=('00ff9c08c2a6db2690e6bcfac9a9d810b4d436c4716a2354747554bd9ba3e99d')
+
+pkgver() {
+  cd "$pkgname"
+  printf "r%s.%s" "$(git rev-list --count HEAD)" "$(git rev-parse --short=7 HEAD)"
+}
+
+package() {
+  cd "$pkgname"
+  install -Dm644 "$pkgname.py" -t "$pkgdir/usr/share/nautilus-python/extensions/"
+}
