@@ -1,0 +1,39 @@
+# Maintainer: Mark Wagie <mark at manjaro dot org>
+pkgname=python-npyscreen
+_name=npyscreen
+pkgver=5.0.2
+pkgrel=2
+pkgdesc="Writing user interfaces without all that ugly mucking about in hyperspace"
+arch=('any')
+url="https://github.com/npcole/npyscreen"
+license=('BSD-3-Clause')
+depends=('python')
+makedepends=(
+  'python-build'
+  'python-installer'
+  'python-setuptools'
+  'python-wheel'
+)
+source=("$_name-$pkgver.tar.gz::$url/archive/refs/tags/v$pkgver.tar.gz"
+        'syntax.patch')
+sha256sums=('73b5253d9082fea6b7fa176f5ffb8bfbdc1734d9747701a07e1647845e0725c1'
+            '0613ab55c95d02dafa2f2b36471848d93261e8c04a1f75f8f0195df1898328a3')
+
+prepare() {
+  cd "$_name-$pkgver"
+
+  # Fix SyntaxWarnings
+  patch -Np1 -i ../syntax.patch
+}
+
+build() {
+  cd "$_name-$pkgver"
+  python -m build --wheel --no-isolation
+}
+
+package() {
+  cd "$_name-$pkgver"
+  python -m installer --destdir="$pkgdir" dist/*.whl
+
+  install -Dm644 LICENCE "$pkgdir/usr/share/licenses/$pkgname/LICENSE"
+}

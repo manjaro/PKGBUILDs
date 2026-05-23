@@ -1,0 +1,101 @@
+diff --unified --recursive --text a/npyscreen/npyspmfuncs.py b/npyscreen/npyspmfuncs.py
+--- a/npyscreen/npyspmfuncs.py	2025-12-22 05:12:53.000000000 -0700
++++ b/npyscreen/npyspmfuncs.py	2025-12-22 09:06:44.066209757 -0700
+@@ -25,7 +25,7 @@
+     
+     rtn = os.system("%s" % (subshell))
+     curses.reset_prog_mode()
+-    if rtn is not 0: return False
++    if rtn != 0: return False
+     else: return True
+ 
+     curses.reset_prog_mode()
+diff --unified --recursive --text a/npyscreen/proto_fm_screen_area.py b/npyscreen/proto_fm_screen_area.py
+--- a/npyscreen/proto_fm_screen_area.py	2025-12-22 05:12:53.000000000 -0700
++++ b/npyscreen/proto_fm_screen_area.py	2025-12-22 09:07:51.297347388 -0700
+@@ -147,8 +147,8 @@
+             self.curses_pad.refresh(self.show_from_y,self.show_from_x,self.show_aty,self.show_atx,_my,_mx)
+         except curses.error:
+             pass
+-        if self.show_from_y is 0 and \
+-        self.show_from_x is 0 and \
++        if self.show_from_y == 0 and \
++        self.show_from_x == 0 and \
+         (_my >= self.lines) and \
+         (_mx >= self.columns):
+             self.ALL_SHOWN = True
+diff --unified --recursive --text a/npyscreen/wgautocomplete.py b/npyscreen/wgautocomplete.py
+--- a/npyscreen/wgautocomplete.py	2025-12-22 05:12:53.000000000 -0700
++++ b/npyscreen/wgautocomplete.py	2025-12-22 09:08:33.006816361 -0700
+@@ -58,12 +58,12 @@
+                 (lambda x: os.path.split(x)[1].startswith(fname)), flist
+                 ))
+ 
+-            if len(possibilities) is 0:
++            if len(possibilities) == 0:
+                 # can't complete
+                 curses.beep()
+                 break
+ 
+-            if len(possibilities) is 1:
++            if len(possibilities) == 1:
+                 if self.value != possibilities[0]:
+                     self.value = possibilities[0]
+                 if os.path.isdir(self.value) \
+diff --unified --recursive --text a/npyscreen/wgcombobox.py b/npyscreen/wgcombobox.py
+--- a/npyscreen/wgcombobox.py	2025-12-22 05:12:53.000000000 -0700
++++ b/npyscreen/wgcombobox.py	2025-12-22 09:09:10.691338919 -0700
+@@ -12,7 +12,7 @@
+     def __init__(self, screen, value = None, values=None,**keywords):
+         self.values = values or []
+         self.value = value or None
+-        if value is 0: 
++        if value == 0: 
+             self.value = 0
+         super(ComboBox, self).__init__(screen, **keywords)
+         
+@@ -26,7 +26,7 @@
+         super(ComboBox, self).update(**keywords)
+     
+     def _print(self):
+-        if self.value == None or self.value is '':
++        if self.value == None or self.value == '':
+             printme = '-unset-'
+         else:
+             try:
+diff --unified --recursive --text a/npyscreen/wgeditmultiline.py b/npyscreen/wgeditmultiline.py
+--- a/npyscreen/wgeditmultiline.py	2025-12-22 05:12:53.000000000 -0700
++++ b/npyscreen/wgeditmultiline.py	2025-12-22 09:13:20.825216319 -0700
+@@ -22,7 +22,7 @@
+         self.scroll_exit = scroll_exit
+         self.encoding = locale.getpreferredencoding()
+         self.autowrap = autowrap
+-        self.wrapon = re.compile("\s+|-+")
++        self.wrapon = re.compile(r"\s+|-+")
+         
+         if GlobalOptions.ASCII_ONLY or locale.getpreferredencoding() == 'US-ASCII':
+             self._force_ascii = True
+diff --unified --recursive --text a/npyscreen/wgmonthbox.py b/npyscreen/wgmonthbox.py
+--- a/npyscreen/wgmonthbox.py	2025-12-22 05:12:53.000000000 -0700
++++ b/npyscreen/wgmonthbox.py	2025-12-22 09:14:01.482714891 -0700
+@@ -221,7 +221,7 @@
+                     print_column = self.relx
+             
+                     for thisday in calrow:
+-                        if thisday is 0:
++                        if thisday == 0:
+                             pass
+                         elif day == thisday:
+                             if self.do_colors():
+diff --unified --recursive --text a/npyscreen/wgmultiline.py b/npyscreen/wgmultiline.py
+--- a/npyscreen/wgmultiline.py	2025-12-22 05:12:53.000000000 -0700
++++ b/npyscreen/wgmultiline.py	2025-12-22 09:14:45.583172565 -0700
+@@ -473,7 +473,7 @@
+         searchingfor = chr(input).upper()
+         for counter in range(len(self.values)):
+             try:
+-                if self.values[counter].find(searchingfor) is not -1:
++                if self.values[counter].find(searchingfor) != -1:
+                     self.cursor_line = counter
+                     break
+             except AttributeError:
