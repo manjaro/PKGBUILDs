@@ -1,0 +1,21 @@
+eol() {
+  echo ">>> NOTE, 5.1.21 was the last maintenance release by Greg Kroah-Hartman."
+  echo "    This kernel series is now marked EOL (end of life)."
+  echo "    "
+  echo "    It is recommend to move on to linux52-series."
+  echo "    Use followed cmd to do that: 'sudo mhwd-kernel -i linux52'"
+  echo "    "
+}
+
+
+post_upgrade() {
+  eol
+  if findmnt --fstab -uno SOURCE /boot &>/dev/null && ! mountpoint -q /boot; then
+    echo "WARNING: /boot appears to be a separate partition but is not mounted."
+  fi
+}
+
+post_remove() {
+  # also remove the compat symlinks
+  rm -f boot/initramfs-%BASEKERNEL%-%ARCH%*.img
+}
