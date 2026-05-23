@@ -1,0 +1,59 @@
+# Maintainer: Mark Wagie <mark at manjaro dot org>
+# Contributor: Helmut Stult
+# Contributor: Christian Heusel <gromit@archlinux.org>
+# Contributor: Iyán Méndez Veiga <me (at) iyanmv (dot) com>
+# Contributor: Dmytro Aleksandrov <alkersan@gmail.com>
+
+pkgname=rpi-imager
+pkgver=1.8.5
+pkgrel=2
+pkgdesc="Raspberry Pi Imaging Utility"
+arch=('x86_64' 'aarch64')
+url="https://github.com/raspberrypi/rpi-imager"
+license=('Apache-2.0')
+depends=(
+  'curl'
+  'gcc-libs'
+  'glibc'
+  'gnutls'
+  'hicolor-icon-theme'
+  'libarchive'
+  'qt5-base'
+  'qt5-declarative'
+  'qt5-quickcontrols2'
+  'xz'
+)
+makedepends=(
+  'cmake'
+  'qt5-svg'
+  'qt5-tools'
+)
+checkdepends=(
+  'appstream'
+  'desktop-file-utils'
+)
+optdepends=(
+  'dosfstools: SD card bootloader support'
+  'udisks2: Needed if you want to be able to run rpi-imager as a regular user'
+)
+source=("${pkgname}-${pkgver}.tar.gz::${url}/archive/v${pkgver}.tar.gz")
+sha256sums=('443e2ca2132067cc67038c82d890f70fd744da2503588852f014435dd11fb786')
+
+build() {
+  cmake -B build -S "$pkgname-$pkgver/src" \
+    -DCMAKE_BUILD_TYPE='None' \
+    -DCMAKE_INSTALL_PREFIX='/usr' \
+    -DENABLE_CHECK_VERSION='OFF' \
+    -DENABLE_TELEMETRY='OFF' \
+    -Wno-dev
+  cmake --build build
+}
+
+check() {
+  appstreamcli validate --no-net "build/$pkgname.metainfo.xml" || :
+  desktop-file-validate "$pkgname-$pkgver/src/linux/org.raspberrypi.rpi-imager.desktop"
+}
+
+package() {
+  DESTDIR="$pkgdir" cmake --install build
+}
