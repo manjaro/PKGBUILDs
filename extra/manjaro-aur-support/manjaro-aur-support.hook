@@ -1,0 +1,9 @@
+[Trigger]
+Operation = Install
+Type = Package
+Target = yay
+
+[Action]
+Description = AUR Disclaimer
+When = PostTransaction
+Exec = /usr/share/libalpm/scripts/manjaro-aur-support
