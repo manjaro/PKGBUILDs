@@ -1,0 +1,66 @@
+# Maintainer: Mark Wagie <mark at manjaro dot org>
+
+pkgname=mdd
+pkgver=r39.1aed98a
+pkgrel=1
+pkgdesc="Manjaro Data Donor"
+arch=('any')
+url="https://github.com/manjaro/mdd"
+license=('MIT')
+depends=(
+  'grep'
+  'python-dateutil'
+  'python-distro' 
+  'python-psutil' 
+  'python-pytz' 
+  'python-requests'
+  'python-tzlocal'
+  'util-linux'
+  'which'
+)
+optdepends=(
+  'inxi: for more detailed information output'
+  'mesa-utils: for advanced graphical information output'
+  'pacman-mirrors: to get mirror setup info'
+  'xorg-xrandr: fallback to find basic graphics data'
+)
+makedepends=(
+  'git'
+  'less'
+)
+_commit=1aed98a81e07fca80149ed332bd6f8c6f73edbad
+source=("git+https://github.com/manjaro/mdd.git#commit=${_commit}")
+sha256sums=('78af6ddec99775856cc1d913945ef61000b2d4c6f2434f2b114f9b49d7e8b888')
+
+_backports=(
+)
+
+_reverts=(
+)
+
+pkgver() {
+  cd "$pkgname"
+  printf "r%s.%s" "$(git rev-list --count HEAD)" "$(git rev-parse --short=7 HEAD)"
+}
+
+prepare() {
+  cd "$pkgname"
+
+  local _c _l
+  for _c in "${_backports[@]}"; do
+    if [[ "${_c}" == *..* ]]; then _l='--reverse'; else _l='--max-count=1'; fi
+    git log --oneline "${_l}" "${_c}"
+    git cherry-pick --mainline 1 --no-commit "${_c}"
+  done
+  for _c in "${_reverts[@]}"; do
+    if [[ "${_c}" == *..* ]]; then _l='--reverse'; else _l='--max-count=1'; fi
+    git log --oneline "${_l}" "${_c}"
+    git revert --mainline 1 --no-commit "${_c}"
+  done
+}
+
+package() {
+  cd "$pkgname"
+  install -Dm755 "$pkgname.py" "$pkgdir/usr/bin/$pkgname"
+  install -Dm644 LICENSE -t "$pkgdir/usr/share/licenses/$pkgname/"
+}
