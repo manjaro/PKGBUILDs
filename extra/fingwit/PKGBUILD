@@ -1,0 +1,40 @@
+# Maintainer: Mark Wagie <mark at manjaro dot org>
+
+pkgname=fingwit
+pkgver=1.0.8
+pkgrel=1
+pkgdesc="Fingerprint Configuration Tool"
+url="https://github.com/xapp-project/fingwit"
+arch=('x86_64')
+license=('GPL-3.0-or-later')
+groups=('x-apps')
+depends=(
+  'audit'
+  'fprintd'
+  'gtk3'
+  'pam'
+  'python-gobject'
+  'python-setproctitle'
+  'xapp'
+  'xapp-symbolic-icons'
+)
+makedepends=('meson')
+source=("$pkgname-$pkgver.tar.gz::$url/archive/refs/tags/$pkgver.tar.gz")
+sha256sums=('3b4fb171ace5e22613662b10ef3891928b4c4128ec12a443233979c2e140def5')
+
+prepare(){
+  cd "$pkgname-$pkgver"
+
+  # Fix license path
+  # Dialog expands too wide
+#  sed -i 's|common-licenses/GPL|licenses/spdx/GPL-3.0-or-later.txt|g' "$pkgname"
+}
+
+build() {
+  arch-meson "$pkgname-$pkgver" build
+  meson compile -C build
+}
+
+package() {
+  meson install -C build --no-rebuild --destdir "$pkgdir"
+}
