@@ -1,4 +1,0 @@
-[refind-drivers]
-source = "git"
-git = "https://github.com/pbatard/efifs.git"
-prefix = "v"
