@@ -1,0 +1,18 @@
+eol() {
+  echo ">>> NOTE, 5.12.19 was the last maintenance release by Greg Kroah-Hartman."
+  echo "    This kernel series is now marked EOL (end of life)."
+  echo "    "
+  echo "    It is recommend to move on to linux510 for LTS series or to"
+  echo "    linux513 for the current stable."
+  echo "    Use followed cmd to do that: 'sudo mhwd-kernel -i linux510'"
+  echo "    or for current stable:       'sudo mhwd-kernel -i linux513'"
+  echo "    "
+}
+
+post_upgrade() {
+  eol
+}
+
+post_install() {
+  eol
+}
