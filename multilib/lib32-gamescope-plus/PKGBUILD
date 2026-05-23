@@ -1,0 +1,89 @@
+# Maintainer: Joaquín Aramendía <samsagax at gmail dot com>
+# Contributor: Maxime Gauduin <alucryd@archlinux.org>
+# Contributor: Giancarlo Razzolini <grazzolini@archlinux.org>
+# Contributor: Samuel "scrufulufugus" Monson <smonson@irbash.net>
+# Contributor: PedroHLC <root@pedrohlc.com>
+
+_pkgname=gamescope
+pkgname=lib32-gamescope-plus
+pkgver=3.15.13.plus1
+pkgrel=2
+pkgdesc='SteamOS session compositing window manager with added patches (32-bit)'
+arch=(x86_64)
+url=https://github.com/ChimeraOS/gamescope
+license=(BSD)
+conflicts=(lib32-gamescope)
+provides=(lib32-gamescope)
+depends=(
+  lib32-wayland
+  lib32-libx11
+  lib32-libxcb
+  lib32-vulkan-icd-loader
+)
+makedepends=(
+  benchmark
+  git
+  meson
+  ninja
+  cmake
+  hwdata
+  vulkan-headers
+  wayland-protocols
+)
+source=("git+https://github.com/ChimeraOS/gamescope.git#tag=${pkgver}"
+        "git+https://github.com/Joshua-Ashton/GamescopeShaders.git#tag=v0.1"
+        "git+https://github.com/Joshua-Ashton/reshade.git"
+        "git+https://github.com/KhronosGroup/SPIRV-Headers.git"
+        )
+
+b2sums=('86ebc476aa621ffc23e3c74f424018ca06f89f8e910811dcef5a67225d51a3b7ff00e3262d8c50f8492dc5ef5b116746aef8fa335a9acb8eac1ca617de08f46c'
+        'ca268553bc3dacb5bd19553702cd454ea78ed97ab39d4397c5abf9a27d32633b63e0f7f7bf567b56066e6ecd979275330e629ba202a6d7721f0cd8166cd110dd'
+        'SKIP'
+        'SKIP')
+
+prepare() {
+  cd "$srcdir/$_pkgname"
+
+  meson subprojects download
+  git submodule init src/reshade
+  git config submodule.src/reshade.url "$srcdir/reshade"
+  git submodule init thirdparty/SPIRV-Headers
+  git config submodule.thirdparty/SPIRV-Headers.url ../SPIRV-Headers
+  git -c protocol.file.allow=always submodule update
+}
+
+#pkgver() {
+#  cd gamescope
+#  git describe --tags | sed 's/\-/\./g'
+#}
+
+build() {
+  export CC="gcc -m32"
+  export CXX="g++ -m32"
+  export PKG_CONFIG="i686-pc-linux-gnu-pkg-config"
+  export LDFLAGS="$LDFLAGS -lrt"
+  arch-meson gamescope build \
+    --libdir=/usr/lib32 \
+    --buildtype release \
+    --prefix /usr \
+    -Denable_gamescope=false \
+    -Denable_openvr_support=false \
+    -Dpipewire=disabled \
+    -Dwlroots:backends=drm,libinput,x11 \
+    -Dwlroots:renderers=gles2,vulkan
+  ninja -C build
+}
+
+package() {
+  meson install -C build --skip-subprojects --destdir="${pkgdir}"
+  install -Dm 644 gamescope/LICENSE -t "${pkgdir}"/usr/share/licenses/lib32-gamescope-plus/
+
+  rm -rf "$pkgdir"/usr/include
+  rm -rf "$pkgdir"/usr/lib/libwlroots*
+  rm -rf "$pkgdir"/usr/lib32/libwlroots*
+  rm -rf "$pkgdir"/usr/lib/pkgconfig
+  rm -rf "$pkgdir"/usr/lib32/pkgconfig
+  rm -rf "$pkgdir"/usr/share/gamescope/scripts
+}
+
+# vim: ts=2 sw=2 et:
