@@ -1,0 +1,10 @@
+pkgname=manjaro-hotfixes
+pkgver=2024.1
+pkgrel=2
+pkgdesc="Obsolete dummy package"
+arch=('any')
+install="$pkgname.install"
+
+package() {
+  return 0
+}
