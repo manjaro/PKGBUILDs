@@ -1,0 +1,50 @@
+# Maintainer: Mark Wagie <mark at manjaro dot org>
+# Contributor: Bruno Pagani <archange@archlinux.org>
+# Contributor: Eli Schwartz <eschwartz@archlinux.org>
+# Contributor: Alexandre Filgueira <alexfilgueira@cinnarch.com>
+# Based on gnome-control-center:
+# Jan Alexander Steffens (heftig) <jan.steffens@gmail.com>
+# Jan de Groot <jgc@archlinux.org>
+
+pkgname=cinnamon-control-center
+pkgver=6.6.0
+pkgrel=1
+pkgdesc="The Control Center for Cinnamon"
+arch=('x86_64')
+url="https://github.com/linuxmint/cinnamon-control-center"
+license=('GPL-2.0-or-later')
+depends=(
+  'cinnamon-settings-daemon'
+  'cinnamon-menus'
+  'colord'
+  'libgnomekbd'
+  'libmm-glib'
+  'nm-connection-editor'
+)
+optdepends=(
+  'cinnamon-translations: i18n'
+  'gnome-color-manager: for color management tasks'
+)
+makedepends=(
+  'glib2-devel'
+  'meson'
+)
+options=('!emptydirs')
+source=("${url}/archive/${pkgver}/${pkgname}-${pkgver}.tar.gz")
+sha256sums=('2de5fbc5a9fcc2e1dad9c595dfb1d9047ff885d391f45d6ffe8b6711bb4e24e4')
+b2sums=('e86c452b7608f2153caf84a8c95fd531adeb70c6df98267a362350857679cdeb8949bacc8503525188e50d37129a8c0593dd051ebc54db4f92003c842edc1ad1')
+
+build() {
+  arch-meson build "${pkgname}-${pkgver}"
+  meson compile -C build
+}
+
+package() {
+  meson install -C build --no-rebuild --destdir "$pkgdir"
+
+  # https://github.com/linuxmint/Cinnamon/pull/7382#issuecomment-374894901
+  # /usr/bin/cinnamon-control-center is not meant for users, it is a development troubleshooting tool.
+  # Just install the shell libs/headers.
+  rm "${pkgdir}"/usr/bin/cinnamon-control-center
+  rm "${pkgdir}"/usr/share/cinnamon-control-center/ui/shell.ui
+}
