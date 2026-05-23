@@ -1,0 +1,50 @@
+# Maintainer: Mark Wagie <mark at manjaro dot org>
+# Contributor: Bernhard Landauer <bernhard[at]manjaro[dot]org>
+# Contributor: Helmut Stult
+
+pkgname=manjaro-cinnamon-settings
+pkgver=20260221
+pkgrel=1
+arch=('any')
+url="https://gitlab.manjaro.org/profiles-and-settings/desktop-settings"
+license=('GPL')
+pkgdesc='Manjaro Linux Cinnamon settings'
+depends=(
+  'artwork-cinnamon-minimal'
+  'bibata-cursor-theme'
+  'cinnamon'
+  'kvantum-manjaro'
+  'manjaro-base-skel'
+  'mint-artwork-styles'
+  'mint-l-theme'
+  'mint-themes'
+  'papirus-maia-icon-theme'
+  'qt5ct'
+  'qt6ct'
+  'ttf-comfortaa'
+)
+makedepends=('git')
+optdepends=(
+  'cinnamon-sounds'
+  'plymouth-theme-manjaro-cinnamon'
+)
+provides=('manjaro-desktop-settings')
+conflicts=('manjaro-desktop-settings')
+_commit=c75a447ba1e85d0e238c8ea8a231230185e3a6e9  # branch/master
+source=("git+$url.git#commit=${_commit}")
+sha256sums=('719775159bbad7a32f51e30af0ef5891b35db9fd7d69e7bb92f352464e4948a0')
+
+pkgver() {
+  cd desktop-settings
+  printf "$(git show -s --format=%cd --date=format:%Y%m%d HEAD)"
+}
+
+package() {
+  cd desktop-settings
+  install -d "$pkgdir/etc"
+  cp -r community/cinnamon/skel "$pkgdir/etc/"
+  install -d "$pkgdir/usr/share/glib-2.0"
+  cp -r community/cinnamon/schemas "$pkgdir/usr/share/glib-2.0/"
+  install -d "$pkgdir/usr/bin"
+  cp community/cinnamon/scripts/* "$pkgdir/usr/bin/"
+}
