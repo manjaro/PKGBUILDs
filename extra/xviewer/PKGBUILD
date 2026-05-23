@@ -1,0 +1,58 @@
+# Maintainer: Mark Wagie <mark at manjaro dot org>
+# Contributor: Bernhard Landauer <bernhard[at]manjaro[dot]org>
+# Contributor: Helmut Stult
+# Contributor: Nate Simon <njsimon10@gmail.com>
+
+pkgname=xviewer
+pkgver=3.4.16
+pkgrel=1
+pkgdesc="Fast and functional graphics viewer"
+arch=('x86_64')
+url="https://github.com/linuxmint/xviewer"
+license=('GPL-2.0-or-later')
+groups=('x-apps')
+depends=(
+  'cinnamon-desktop'
+  'exempi'
+  'gtk3'
+  'libexif'
+  'libjpeg-turbo'
+  'libx11'
+  'lcms2'
+  'libpeas'
+  'xapp'
+  'zlib'
+)
+makedepends=(
+  'glib2-devel'
+  'gobject-introspection'
+  'gtk-doc'
+  'itstool'
+  'librsvg'
+  'meson'
+)
+checkdepends=('appstream')
+optdepends=(
+  'libavif: AVIF support'
+  'libheif: HEIF support'
+  'librsvg: for scaling svg images'
+  'webp-pixbuf-loader: webp support'
+  'xviewer-plugins: Extra plugins'
+  'yelp: for viewing the help manual'
+)
+source=("${pkgname}-${pkgver}.tar.gz::${url}/archive/${pkgver}.tar.gz")
+sha256sums=('41323bd88c032ce158ce1970f945aa7b6c7fc11fcc211bdfd54ea9d8701d9866')
+
+build() {
+  arch-meson "${pkgname}-${pkgver}" build
+  meson compile -C build
+}
+
+check() {
+  desktop-file-validate "build/data/${pkgname}.desktop"
+  appstreamcli validate --no-net "build/data/${pkgname}.appdata.xml" || :
+}
+
+package(){
+  meson install -C build --no-rebuild --destdir "${pkgdir}"
+}
