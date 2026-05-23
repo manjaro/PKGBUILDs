@@ -1,0 +1,3 @@
+[arc-themes-maia]
+source = "git"
+git = "https://github.com/jnsh/arc-theme.git"
