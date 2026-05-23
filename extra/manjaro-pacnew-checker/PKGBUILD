@@ -1,0 +1,36 @@
+# Maintainer: Stefano Capitani <stefano_at_manjaro_dot_org>
+
+pkgname=manjaro-pacnew-checker
+_pkgname=pacnew-checker
+pkgdesc="Simple GUI checker for pacnew/pacsave files and manage them"
+pkgver=0.7.2
+pkgrel=1
+arch=('any')
+url="https://gitlab.manjaro.org/ste74/manjaro-pacnew-checker"
+license=('GPL-3.0-or-later')
+depends=('gvfs' 'manjaro-icons' 'meld' 'pacman-contrib' 'polkit' 'yad' 'xdg-utils')
+optdepends=('kio-admin: Manage files as administrator using the admin:// KIO protocol for Plasma')
+install="$_pkgname.install"
+source=("$url/-/archive/$pkgver/$pkgname-$pkgver.tar.gz"
+        "$_pkgname.hook"
+        'pacnew-check.sh')
+sha256sums=('19984e59e6942f07ce843450eab00a5c8630c477408a2d1af4c00a6b9c1c0c52'
+            'ff3dfa569f5f272e958863a5e274088e417b777ddf92c9bb66782a6c32cdb840'
+            'a619873a960732d8f33abafae6a28bed32241b3e92bd494ef1f4232aeea892a7')
+
+package() {
+    cd "$pkgname-$pkgver"
+    install -Dm755 $_pkgname.sh "$pkgdir"/usr/bin/$_pkgname
+    install -Dm755 pacnew-helper.sh "$pkgdir"/usr/lib/$_pkgname/pacnew-helper
+    install -Dm755 "${_pkgname}"0.sh "$pkgdir"/usr/bin/"${_pkgname}"0
+    install -Dm644 $_pkgname.service "$pkgdir/usr/lib/systemd/user/$_pkgname.service"
+    install -Dm644 $_pkgname.path "$pkgdir/usr/lib/systemd/user/$_pkgname.path"
+    install -Dm644 "$srcdir"/$_pkgname.hook "$pkgdir"/usr/share/libalpm/hooks/$_pkgname.hook
+    install -Dm755 "$srcdir"/pacnew-check.sh "$pkgdir"/usr/share/libalpm/scripts/pacnew-check
+    install -Dm644 50-pacnew-check.rules "$pkgdir/etc/polkit-1/rules.d/50-pacnew-checker.rules"
+    install -Dm644 $_pkgname.svg "$pkgdir/usr/share/icons/hicolor/scalable/apps/$_pkgname.svg"
+    install -Dm644 $_pkgname.desktop $pkgdir/usr/share/applications/$_pkgname.desktop  
+    
+    # Translations
+    cp -R usr "$pkgdir/"
+}
