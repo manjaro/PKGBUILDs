@@ -1,0 +1,29 @@
+# Maintainer: Stefano Capitani <stefanoatmanjarodotorg>
+
+pkgname=manjaro-gnome-vanilla
+pkgver=0.5
+pkgrel=2
+pkgdesc="Tool to remove all Manjaro GNOME extra stuff"
+arch=('any')
+url="https://gitlab.manjaro.org/ste74/cleanup-manjaro-gnome"
+license=('GPL-3.0-or-later')
+depends=(
+  'curl'
+  'manjaro-icons'
+  'pamac-cli'
+  'yad'
+)
+makedepends=(
+  'git'
+)
+_commit=bbd58c3dc5a2ee316589891f276f07b59ccc6475  # branch/master
+source=("git+https://gitlab.manjaro.org/ste74/cleanup-manjaro-gnome.git#commit=${_commit}")
+sha256sums=('bcbdf1b8b14b9bffcf5473d8058eb8531b821692f4c1c69212bd344e7d0af4b9')
+
+package() {
+  cd cleanup-manjaro-gnome
+  install -Dm755 gnome-reset -t "$pkgdir/usr/bin/"
+  install -Dm644 cleanup-manjaro-gnome.desktop -t "$pkgdir/usr/share/applications/"
+  install -Dm644 warn.png -t "$pkgdir/usr/share/icons/hicolor/40x40/status/"
+}
+
