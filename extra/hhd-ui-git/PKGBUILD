@@ -1,0 +1,77 @@
+# Maintainer: Antheas Kapenekakis (aur at antheas.dev)
+# Maintainer: MrDuartePT <gonegrier.duarte@gmail.com>
+_electronversion=31
+_pkgname=hhd-ui
+pkgname=$_pkgname-git
+_commit=1e47148d8faf392c78a398878e6a07e068150d50
+pkgver=3.2.1.r418.20240818.1e47148
+pkgrel=1
+pkgdesc="Configurator interface for Handheld Daemon."
+arch=('x86_64')
+provides=("${_pkgname}")
+conflicts=("${_pkgname}")
+url='https://github.com/hhd-dev/hhd-ui'
+license=('MIT')
+depends=("electron$_electronversion")
+optdepends=('hhd-git: a version of Handheld Daemon to connect to (also works over the network).')
+makedepends=('asar' 'libxss' 'npm' 'git')
+_srcname=hhd-ui
+source=("${_pkgname}::git+${url}.git#commit=$_commit")
+sha512sums=('de8706d0848fb3eff10084db484a8b687c26651af11b814b9ec66bae8d606316ab687f0af6c333a36d3e1da98c1b09cbd5d6d58b9f98b9304d0c8327c081be02')
+
+pkgver() {
+  cd "${srcdir}/${_pkgname}"
+
+  _ver="$(git describe  --tags | sed 's|^[vV]||' | sed 's|-g[0-9a-fA-F]*$||' | tr '-' '+')"
+  _rev="$(git rev-list --count HEAD)"
+  _date="$(git log -1 --date=format:"%Y%m%d" --format="%ad")"
+  _hash="$(git rev-parse --short HEAD)"
+
+  if [ -z "${_ver}" ]; then
+    error "Version could not be determined."
+    return 1
+  else
+    printf '%s' "${_ver}.r${_rev}.${_date}.${_hash}"
+  fi
+}
+
+prepare() {
+  cd $_srcname
+  export ELECTRONVERSION=$_electronversion
+  sed -i "s|@electronversion@|${ELECTRONVERSION}|" "./pkg/hhd-ui.sh"
+  npm ci
+  sed -i "s|"version": "1.0.0"|"version": "${pkgver}"|" "package.json"
+  cd ./electron
+  npm ci
+}
+
+build() {
+  cd $_srcname
+  export npm_config_target=$(tail /usr/lib/electron/version)
+  export npm_config_arch=x64
+  export npm_config_target_arch=x64
+  export npm_config_runtime=electron
+  export npm_config_build_from_source=true
+  npm run electron-build
+  cd ./electron
+  npm run build
+}
+
+package() {
+  # Install the app
+  cd $srcdir/$_srcname/electron
+	install -vDm644 ./dist/linux-unpacked/resources/app.asar -t "${pkgdir}/usr/lib/${_pkgname}"
+	install -vDm644 ./package.json -t "${pkgdir}/usr/lib/${_pkgname}"
+
+  # Install the icons
+  cd $srcdir/$_srcname
+	install -vDm644 ./art/library_capsule.png "${pkgdir}/usr/share/applications/${pkgname}/library_capsule.png"
+	install -vDm644 ./art/library_hero.png "${pkgdir}/usr/share/applications/${pkgname}/library_hero.png"
+	install -vDm644 ./art/library_logo.png "${pkgdir}/usr/share/applications/${pkgname}/library_logo.png"
+	install -vDm644 ./art/main_capsule.png "${pkgdir}/usr/share/applications/${pkgname}/main_capsule.png"
+	install -vDm644 ./art/icon.png "${pkgdir}/usr/share/applications/${pkgname}/icon.png"
+
+  # Install scripts
+	install -vDm644 "./pkg/hhd-ui.desktop" -t "${pkgdir}"/usr/share/applications
+	install -vDm755 "./pkg/hhd-ui.sh" "${pkgdir}/usr/bin/${_pkgname}"
+}
