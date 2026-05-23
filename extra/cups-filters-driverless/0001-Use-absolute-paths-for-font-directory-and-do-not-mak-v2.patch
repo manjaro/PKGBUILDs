@@ -1,0 +1,42 @@
+diff -Npur cups-filters-1.21.2.orig/configure cups-filters-1.21.2/configure
+--- cups-filters-1.21.2.orig/configure	2018-09-02 16:29:25.000000000 +0200
++++ cups-filters-1.21.2/configure	2018-09-13 22:32:36.785482420 +0200
+@@ -17286,7 +17286,7 @@ fi
+ if test "${with_fontdir+set}" = set; then :
+   withval=$with_fontdir; FONTDIR="$withval"
+ else
+-  FONTDIR="fonts/conf.d"
++  FONTDIR="${sysconfdir}/fonts/conf.d"
+ 
+ fi
+ 
+@@ -23861,7 +23861,7 @@ Environment settings:
+ 	LDFLAGS:         ${LDFLAGS}
+ Build configuration:
+ 	cups-config:     ${with_cups_config}
+-	font directory:  ${sysconfdir}/${FONTDIR}
++	font directory:  ${FONTDIR}
+ 	foomatic:        ${enable_foomatic}
+ 	init directory:  ${INITDDIR}
+ 	cups dom socket: ${CUPS_DEFAULT_DOMAINSOCKET}
+@@ -23904,7 +23904,7 @@ Environment settings:
+ 	LDFLAGS:         ${LDFLAGS}
+ Build configuration:
+ 	cups-config:     ${with_cups_config}
+-	font directory:  ${sysconfdir}/${FONTDIR}
++	font directory:  ${FONTDIR}
+ 	foomatic:        ${enable_foomatic}
+ 	init directory:  ${INITDDIR}
+ 	cups dom socket: ${CUPS_DEFAULT_DOMAINSOCKET}
+diff -Npur cups-filters-1.21.2.orig/Makefile.in cups-filters-1.21.2/Makefile.in
+--- cups-filters-1.21.2.orig/Makefile.in	2018-09-02 16:29:24.000000000 +0200
++++ cups-filters-1.21.2/Makefile.in	2018-09-13 22:33:15.626689123 +0200
+@@ -1575,7 +1575,7 @@ test_pdf_LDADD = libfontembed.la
+ test_ps_SOURCES = fontembed/test_ps.c
+ test_ps_LDADD = libfontembed.la
+ pkgfilterdir = $(CUPS_SERVERBIN)/filter
+-@ENABLE_OPVP_TRUE@@ENABLE_POPPLER_TRUE@pkgfontconfigdir = $(sysconfdir)/$(FONTDIR)
++@ENABLE_OPVP_TRUE@@ENABLE_POPPLER_TRUE@pkgfontconfigdir = $(FONTDIR)
+ @ENABLE_OPVP_TRUE@@ENABLE_POPPLER_TRUE@pkgfontconfig_DATA = filter/pdftoopvp/99pdftoopvp.conf
+ pdftoopvp_SOURCES = \
+ 	filter/pdftoopvp/oprs/OPRS.cxx \
