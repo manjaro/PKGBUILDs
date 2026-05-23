@@ -1,0 +1,29 @@
+# Maintainer: Jesus Alvarez <jeezusjr at gmail dot com>
+# Contributor: Kyle Fuller <inbox at kylefuller dot co dot uk>
+
+pkgname=("spl-dkms")
+pkgver=0.7.13
+_pkgver=spl-0.7.13
+pkgrel=1
+pkgdesc="Solaris Porting Layer kernel modules."
+depends=("spl-utils=${pkgver}" "dkms")
+arch=("any")
+url="http://zfsonlinux.org/"
+source=(https://github.com/zfsonlinux/spl/archive/spl-${pkgver}.tar.gz)
+groups=("manjarozfs")
+sha256sums=('62b2bb7ed5bc607d53a79881747604ebc4794184979b6d918b37de5f365c7e41')
+license=("CDDL")
+install=spl-dkms.install
+
+build() {
+  cd "$srcdir/spl-${_pkgver}"
+  ./autogen.sh
+  scripts/dkms.mkconf -v ${pkgver} -f dkms.conf -n spl
+}
+
+package() {
+   #install -d ${pkgdir}/usr/src/spl-${pkgver}
+   install -d ${pkgdir}/usr/src/
+   cp -a ${srcdir}/spl-${_pkgver}/ ${pkgdir}/usr/src/
+   mv ${pkgdir}/usr/src/spl-${_pkgver} ${pkgdir}/usr/src/spl-${pkgver}
+}
