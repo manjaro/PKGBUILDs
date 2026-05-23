@@ -1,0 +1,4 @@
+[python-vdf]
+source = "git"
+git = "https://github.com/solsticegamestudios/vdf.git"
+prefix = "v"
