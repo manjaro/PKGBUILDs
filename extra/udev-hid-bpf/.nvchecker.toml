@@ -1,3 +1,0 @@
-[udev-hid-bpf]
-source = "git"
-git = "https://gitlab.freedesktop.org/libevdev/udev-hid-bpf.git"
