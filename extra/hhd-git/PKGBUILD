@@ -1,0 +1,51 @@
+# Maintainer: Antheas Kapenekakis <aur at antheas dot dev>
+pkgname=hhd-git
+_pkgname=hhd
+pkgver=3.3.12+1.r1239.20240907.0d25d7a
+pkgrel=1
+_commit="0d25d7ac8e34c23a1f7e8aff8947298053a0ae5c"
+pkgdesc='Handheld Daemon. A tool for managing the quirks of handheld devices.'
+arch=('x86_64')
+url='https://github.com/hhd-dev/hhd'
+license=('MIT')
+depends=('libusb' 'python' 'python-setuptools' 'python-evdev' 'python-rich' 'python-yaml' 'python-xlib')
+optdepends=('hhd-user: allows running hhd as a user service.')
+makedepends=('python-'{'build','installer','setuptools','wheel'} 'git')
+source=("${_pkgname}::git+${url}.git#commit=$_commit")
+sha512sums=('d29d84e31a8ee2fdfdf99bd4cfb52544cd89157b26b4f0f135aa6639e988e193d8acdfabb7fe891e567fda55631b51b1e319d8a00e3483548540a1c41ce8887a')
+conflicts=("${_pkgname}")
+provides=("${_pkgname}")
+
+pkgver() {
+  cd "${srcdir}/${_pkgname}"
+
+  _ver="$(git describe  --tags | sed 's|^[vV]||' | sed 's|-g[0-9a-fA-F]*$||' | tr '-' '+')"
+  _rev="$(git rev-list --count HEAD)"
+  _date="$(git log -1 --date=format:"%Y%m%d" --format="%ad")"
+  _hash="$(git rev-parse --short HEAD)"
+
+  if [ -z "${_ver}" ]; then
+    error "Version could not be determined."
+    return 1
+  else
+    printf '%s' "${_ver}.r${_rev}.${_date}.${_hash}"
+  fi
+}
+
+build() {
+  cd "${srcdir}/${_pkgname}" 
+  python -m build --wheel --no-isolation
+}
+
+package() {
+  cd "${srcdir}/${_pkgname}"
+  python -m installer --destdir="$pkgdir" dist/*.whl
+  
+  # Install minimally necessary rules for running as a system service
+	mkdir -p ${pkgdir}/usr/lib/udev/rules.d/
+  install -m644 usr/lib/udev/rules.d/83-hhd.rules ${pkgdir}/usr/lib/udev/rules.d/83-hhd.rules
+	mkdir -p ${pkgdir}/usr/lib/udev/hwdb.d/
+  install -m644 usr/lib/udev/hwdb.d/83-hhd.hwdb ${pkgdir}/usr/lib/udev/hwdb.d/83-hhd.hwdb
+	mkdir -p ${pkgdir}/usr/lib/systemd/system/
+  install -m644 usr/lib/systemd/system/hhd@.service ${pkgdir}/usr/lib/systemd/system/hhd@.service
+}
