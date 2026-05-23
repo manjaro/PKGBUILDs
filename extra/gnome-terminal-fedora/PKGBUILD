@@ -1,0 +1,97 @@
+# Maintainer: Stefano Capitani <stefano@manjaro.org>
+# Maintainer: Bernhard Landauer <oberon@manjaro.org>
+# Maintainer: Mark Wagie <mark at manjaro dot org>
+# Contributor: Jason Edson <jaysonedson@gmail.com>
+# Contributor: Davi da Silva Böger <dsboger@gmail.com>
+# Contributor: Manuel Hüsers <manuel.huesers@uni-ol.de>
+# Contributor: Jan Alexander Steffens (heftig) <heftig@archlinux.org>
+# Contributor: Jan de Groot <jgc@archlinux.org>
+
+pkgname=gnome-terminal-fedora
+pkgver=3.52.2
+pkgrel=2
+pkgdesc="The GNOME Terminal Emulator with Fedora patches"
+url="https://wiki.gnome.org/Apps/Terminal"
+arch=('x86_64')
+license=(
+  # Program
+  'GPL-3.0-or-later'
+
+  # Documentation
+  'CC-BY-SA-3.0'
+  'GPL-3.0-only'
+
+  # Appstream-data
+  'GFDL-1.3-only'
+)
+depends=(
+  'dconf'
+  'gcc-libs'
+  'glib2'
+  'glibc'
+  'gsettings-desktop-schemas'
+  'gtk3'
+  'hicolor-icon-theme'
+  'libhandy'
+  'libx11'
+  'pango'
+  'util-linux-libs'
+  'vte3-notification'
+)
+makedepends=(
+  'docbook-xsl'
+  'git'
+  'glib2-devel'
+  'gnome-shell'
+  'libnautilus-extension'
+  'meson'
+  'yelp-tools'
+)
+optdepends=(
+  "libnautilus-extension: Nautilus integration"
+)
+checkdepends=('appstream')
+provides=("gnome-terminal=${pkgver}")
+conflicts=('gnome-terminal')
+
+# Fedora patches: https://src.fedoraproject.org/rpms/gnome-terminal/tree/
+_frepourl="https://src.fedoraproject.org/rpms/gnome-terminal"
+_frepobranch=rawhide
+_fcommit=67ad1345bf024da103e4ed23ff302d7f0c180259
+_fpatchfile0='gnome-terminal-cntr-ntfy-autottl-ts.patch'
+_fgsoverridefile='org.gnome.Terminal.gschema.override'
+
+source=("git+https://gitlab.gnome.org/GNOME/gnome-terminal.git#tag=$pkgver"
+        "${_fpatchfile0}-${_fcommit}::${_frepourl}/raw/${_fcommit}/f/${_fpatchfile0}"
+        "${_fgsoverridefile}-${_fcommit}::${_frepourl}/raw/${_fcommit}/f/${_fgsoverridefile}")
+sha256sums=('d019395b95c992be1b5661f7c927fdd8293440a9ee79c632f1c9bd0a30f2449c'
+            'c694443d2701b0fd81f01bd8f23981b8ac8e60602fe3699dfd799a6434d54dc5'
+            'a4a22834d6524fb697a8edf91c9489617d5ab2e513413fc84c6b8575320938f9')
+
+prepare () {
+  cd gnome-terminal
+  patch -p1 -i "../${_fpatchfile0}-${_fcommit}"
+}
+
+build() {
+  local meson_options=(
+    -D b_lto=false
+  )
+
+  arch-meson gnome-terminal build "${meson_options[@]}"
+  meson compile -C build
+}
+
+check() {
+  meson test -C build --print-errorlogs
+
+  appstreamcli validate --no-net build/data/org.gnome.Terminal*.metainfo.xml
+  desktop-file-validate build/data/org.gnome.Terminal.desktop
+}
+
+package() {
+  meson install -C build --destdir "$pkgdir"
+
+  install -Dm644 "${_fgsoverridefile}-${_fcommit}" \
+    "${pkgdir}/usr/share/glib-2.0/schemas/${_fgsoverridefile}"
+}
