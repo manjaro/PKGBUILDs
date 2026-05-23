@@ -1,0 +1,32 @@
+# Maintainer: Mark Wagie <mark at manjaro dot org>
+# Contributor: pacu <https://forum.manjaro.org/u/pacu>
+# Contributor: Paulo Fino <somepaulo@duck.com>
+
+pkgname=adwaita-colors-icon-theme
+pkgver=2.4.2
+pkgrel=3
+pkgdesc="Customizes Adwaita icons to match your GNOME theme's accent color, providing a cohesive, personalized look."
+arch=('any')
+url="https://github.com/dpejoh/Adwaita-colors"
+license=('GPL-3.0-or-later')
+depends=('adwaita-icon-theme')
+makedepends=('git')
+optdepends=('morewaita-icon-theme: inherit MoreWaita icons')
+options=('!strip')
+source=("git+https://github.com/dpejoh/Adwaita-colors#tag=v$pkgver"
+        'recolor.sh')
+sha256sums=('6cb4c331720c9d9b166e55d9791cf8fd6d3886f92df58261eb9e706de7849ea4'
+            'fde2a1af499eaacee9d1f5b221762f4291d24f01e6acb80dbe098da805c12965')
+
+prepare() {
+  cd Adwaita-colors
+
+  # Add Maia colors
+  sh "$srcdir/recolor.sh"
+}
+
+package() {
+  cd Adwaita-colors
+	install -d "$pkgdir/usr/share/icons"
+	cp -r Adwaita* "$pkgdir/usr/share/icons"
+}
