@@ -1,0 +1,32 @@
+# Maintainer: Mark Wagie <mark at manjaro dot org>
+# Contributor: Rafael Fontenelle <rafaelff@gnome.org>
+# Contributor: Andrew Querol <andrew@querol.me>
+
+pkgname=gnome-browser-connector
+pkgver=42.1
+pkgrel=2
+pkgdesc="OS-native connector counterpart for GNOME Shell browser extension."
+arch=('any')
+url="https://wiki.gnome.org/Projects/GnomeShellIntegration"
+license=('GPL3')
+depends=('gnome-shell' 'python' 'python-gobject')
+makedepends=('git' 'meson')
+conflicts=('chrome-gnome-shell')
+replaces=('chrome-gnome-shell')
+_commit=1ed2008a39acceaed153b8b3b865081ceba98ab2  # tags/v42.1^0
+source=("git+https://gitlab.gnome.org/nE0sIghT/gnome-browser-connector.git#commit=$_commit")
+sha256sums=('SKIP')
+
+pkgver() {
+  cd "$srcdir/$pkgname"
+  git describe --tags | sed 's/^v//;s/-/+/g'
+}
+
+build() {
+  arch-meson "$pkgname" build
+  meson compile -C build
+}
+
+package() {
+  meson install -C build --destdir "$pkgdir"
+}
