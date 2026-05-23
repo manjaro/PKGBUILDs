@@ -1,0 +1,28 @@
+# Maintainer: Mark Wagie <mark at manjaro dot org>
+# Contributor: Sam Burgos <santiago.burgos1089@gmail.com>
+
+pkgname=mint-l-icons
+pkgver=1.8.0
+pkgrel=1
+pkgdesc="A flat, colorful, and modern theme based on Paper and Moka (legacy)."
+arch=('any')
+url="https://github.com/linuxmint/mint-l-icons"
+license=('GPL-3.0-or-later AND CC-BY-SA-4.0')
+depends=(
+  'gtk-update-icon-cache'
+  'hicolor-icon-theme'
+)
+options=('!strip')
+source=("http://packages.linuxmint.com/pool/main/m/$pkgname/${pkgname}_${pkgver}.tar.xz")
+noextract=("${pkgname}_${pkgver}.tar.xz")
+sha256sums=('1513116cf94d557104d8c5a6a616305055ff45469a899674c62dbdb7e8164eb8')
+
+prepare() {
+  mkdir -p "$pkgname-$pkgver"
+  bsdtar xf "${pkgname}_${pkgver}.tar.xz" --strip-components 1 -C "$pkgname-$pkgver"
+}
+
+package() {
+  cd "$pkgname-$pkgver"
+  cp -r usr "$pkgdir/"
+}
