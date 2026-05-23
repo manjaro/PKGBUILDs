@@ -1,0 +1,32 @@
+# Maintainer: Stefano Capitani <stefanoatmanjarodotorg>
+# Artist: Bogdan Covaciu <https://forum.manjaro.org/t/ttb-vs-stw-another-wallpaper/105682?u=bogdancovaciu>
+
+_pkgname=dynamic-wallpaper
+pkgname=manjaro-$_pkgname
+pkgver=1.2
+pkgrel=1
+pkgdesc='Dynamic wallpaper for Manjaro'
+arch=(any)
+url='https://gitlab.manjaro.org/artwork/wallpapers/dynamic-wallpaper'
+license=('GPL3')
+source=("$url/-/archive/$pkgver/$_pkgname-$pkgver.tar.gz")
+sha256sums=('86b87679b4696d8b8c7782d775ae43b415f088c744487f6722ffb8e08e279f8f')
+
+package() {
+	_theme=manjaro-time
+	
+	export _old_installdir=/usr/share/backgrounds
+	export _old_propertydir=/usr/share/gnome-background-properties
+	export _new_installdir=$pkgdir/usr/share/backgrounds
+	export _new_propertydir=$pkgdir/usr/share/gnome-background-properties
+	
+	sed -i 's|'${_old_installdir}'|'${_new_installdir}'|g' $srcdir/$_pkgname-$pkgver/install.sh
+	sed -i 's|'${_old_propertydir}'|'${_new_propertydir}'|g' $srcdir/$_pkgname-$pkgver/install.sh
+	
+	cd $_pkgname-$pkgver
+	./install.sh
+	
+	#remove unused files
+	rm -f $pkgdir/usr/share/backgrounds/$_theme/*property*
+}
+
