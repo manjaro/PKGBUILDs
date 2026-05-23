@@ -1,0 +1,47 @@
+# Maintainer: Mark Wagie <mark at manjaro dot org>
+
+pkgname=topgrade
+pkgver=17.5.1
+pkgrel=1
+pkgdesc="Upgrade all the things"
+arch=('x86_64' 'aarch64')
+url="https://topgrade-rs.github.io"
+license=('GPL-3.0-or-later')
+depends=('libgcc')
+makedepends=('rust')
+source=("$pkgname-$pkgver.tar.gz::https://github.com/topgrade-rs/topgrade/archive/refs/tags/v$pkgver.tar.gz")
+sha256sums=('bdb4b70319c74ebbe3266d6394963b7798b1362a0a035dff27bec0618ae09c38')
+
+prepare() {
+  cd "$pkgname-$pkgver"
+  cargo fetch --locked --target host-tuple
+}
+
+build() {
+  cd "$pkgname-$pkgver"
+  export CARGO_TARGET_DIR=target
+  cargo build --frozen --release
+
+  # Generate completions
+  for shell in bash fish zsh; do
+    ./"target/release/$pkgname" --gen-completion "${shell}" > "$pkgname.${shell}"
+  done
+
+  # Generate man page
+  ./"target/release/$pkgname" --gen-manpage > "$pkgname.1"
+}
+
+check() {
+  cd "$pkgname-$pkgver"
+  cargo test --frozen
+}
+
+package() {
+  cd "$pkgname-$pkgver"
+  install -Dm755 "target/release/$pkgname" -t "$pkgdir/usr/bin/"
+  install -Dm644 "$pkgname.1" -t "$pkgdir/usr/share/man/man1/"
+  install -Dm644 "$pkgname.bash" "$pkgdir/usr/share/bash-completion/completions/$pkgname"
+  install -Dm644 "$pkgname.fish" -t "$pkgdir/usr/share/fish/vendor_completions.d/"
+  install -Dm644 "$pkgname.zsh" "$pkgdir/usr/share/zsh/site-functions/_${pkgname}"
+  install -Dm644 config.example.toml -t "$pkgdir/usr/share/doc/$pkgname/"
+}
