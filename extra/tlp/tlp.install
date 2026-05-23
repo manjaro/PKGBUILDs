@@ -1,0 +1,25 @@
+pre_upgrade() {
+  if [ $(vercmp "$2" 1.3.0) -lt 0 ]; then
+    if ! echo "e5ace3ec44991ae012d8a8a66865fb4f  /etc/default/tlp" | md5sum -c --quiet - >/dev/null; then
+      echo "TLP configuration defaults have changed. Please merge the pacnew."
+      mv /etc/default/tlp /etc/tlp.conf
+    fi
+  fi
+}
+
+#  https://linrunner.de/tlp/developers/scripts.html
+#  https://linrunner.de/tlp/faq/installation.html
+
+post_install() {
+  # Mask conflicting systemd services
+  for i in $(ls /lib/systemd/system 2> /dev/null | egrep "(power-profiles-daemon|system76-power|systemd-rfkill|tuned)"); do
+    systemctl mask $i 2> /dev/null || true
+  done
+}
+
+post_remove() {
+  # Unmask conflicting systemd services
+  for i in $(ls /lib/systemd/system 2> /dev/null | egrep "(power-profiles-daemon|system76-power|systemd-rfkill|tuned)"); do
+    systemctl unmask $i 2> /dev/null || true
+  done
+}
