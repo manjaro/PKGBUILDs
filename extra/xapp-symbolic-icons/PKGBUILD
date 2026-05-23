@@ -1,0 +1,33 @@
+# Maintainer: Mark Wagie <mark at manjaro dot org>
+
+pkgname=xapp-symbolic-icons
+pkgver=1.0.9
+pkgrel=0.1
+pkgdesc='A set of symbolic icons for GTK applications and projects'
+arch=(any)
+url='https://github.com/xapp-project/xapp-symbolic-icons'
+license=(
+  CC0-1.0
+  CC-BY-NC-SA-4.0
+  LGPL-3.0-or-later
+  MIT
+)
+depends=(hicolor-icon-theme)
+makedepends=(
+  git
+  meson
+)
+optdepends=('python: for xsi-replace-adwaita-symbolic command')
+source=("git+https://github.com/xapp-project/xapp-symbolic-icons#tag=$pkgver")
+b2sums=('8dcdb22f90a23baf3c76b7d4d1195d601a991f0eab2c44b72764cdd59654fedc21b48c9c9d6b760c21f164bd74f34d9f1d1e30808bdb96aa2ef9fe8530d09edf')
+
+build() {
+  arch-meson $pkgname build
+  meson compile -C build
+}
+
+package(){
+  meson install -C build --destdir="$pkgdir"
+
+  install -Dm644 "$pkgname/LICENSES/MIT.txt" "$pkgdir/usr/share/licenses/LICENSE-MIT.txt"
+}
