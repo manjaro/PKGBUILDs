@@ -1,0 +1,114 @@
+# Maintainer: Mark Wagie <mark at manjaro dot org>
+
+pkgbase=mcp
+pkgname=('libmcp'
+         'mcp-common'
+         'mcp-qt'
+         'mcp-kcm'
+#         'mcp-gtk'
+         )
+pkgver=r106.85383d5
+pkgrel=1
+pkgdesc="Manjaro Control Panel: Next generation of Manjaro Settings Manager"
+arch=('x86_64')
+url="https://gitlab.com/LordTermor/msm-ng"
+license=('GPL3')
+depends=('hwinfo' 'kauth' 'kcmutils' 'kconfigwidgets' 'kcoreaddons' 'ki18n'
+         'kirigami2' 'libpamac' 'libsigc++' 'qt5-declarative')
+makedepends=('appstream' 'cmake' 'extra-cmake-modules' 'git' 'nlohmann-json'
+             'python' 'python-gobject')
+options=('debug')
+_commit=85383d5d4dd8210f714cbbd5db5d69c05ff21562
+source=("git+https://gitlab.com/LordTermor/msm-ng.git#commit=${_commit}"
+        'git+https://github.com/hampusborgos/country-flags.git')
+sha256sums=('SKIP'
+            'SKIP')
+
+pkgver() {
+  cd "$srcdir/msm-ng"
+  printf "r%s.%s" "$(git rev-list --count HEAD)" "$(git rev-parse --short HEAD)"
+}
+
+prepare() {
+  mkdir -p kcm
+
+  cd "$srcdir/msm-ng"
+  git submodule init
+  git config submodule.libmcp/language/country-flags.url "$srcdir/country-flags"
+  git -c protocol.file.allow=always submodule update
+}
+
+build() {
+  cmake -B build -S msm-ng \
+    -DCMAKE_BUILD_TYPE='Debug' \
+    -DCMAKE_INSTALL_PREFIX='/usr' \
+    -DKDE_INSTALL_USE_QT_SYS_PATHS='ON' \
+    -DCACHE_CHANGELOGS='ON' \
+    -DBUILD_CORE='ON' \
+    -DBUILD_QT='ON' \
+    -DBUILD_KCMS='ON' \
+    -DBUILD_GTK='OFF'
+  cmake --build build
+}
+
+package_libmcp() {
+  pkgdesc="Manjaro Control Panel core library"
+  depends=('libsigc++' 'libpamac')
+  provides=('libmcp.so')
+  conflicts=('msm-ng-core')
+  replaces=('msm-ng-core')
+
+  DESTDIR="$pkgdir" cmake --install "build/$pkgname"
+}
+
+package_mcp-common() {
+  pkgdesc="Common files for Manjaro Control Panel"
+  depends=('libmcp')
+  provides=('libmcp-common.so')
+
+  DESTDIR="$pkgdir" cmake --install "build/$pkgname"
+
+  install -d "$pkgdir/etc/mcp/"
+  touch "$pkgdir/etc/mcp/pamac.conf"
+}
+
+package_mcp-qt() {
+  pkgdesc="Manjaro Control Panel Qt GUI"
+  depends=('hwinfo' 'kauth' 'kconfigwidgets' 'kcoreaddons' 'ki18n' 'kirigami2'
+           'libmcp' 'mcp-common' 'qqc2-desktop-style' 'qt5-declarative' 'ttf-comfortaa')
+  conflicts=('msm-ng-qt' 'manjaro-settings-manager' 'manjaro-settings-manager-notifier'
+             'manjaro-settings-manager-knotifier' 'mcp-qt-gnome')
+  replaces=('msm-ng-qt' 'mcp-qt-gnome')
+
+  DESTDIR="$pkgdir" cmake --install "build/$pkgname"
+
+  mv "$pkgdir"/usr/{lib/qt/plugins,share/{kpackage,kservices5}} "$srcdir/kcm/"
+  rm -rf "$pkgdir/usr/lib/qt/"
+}
+
+package_mcp-kcm() {
+  pkgdesc="Manjaro Control Panel KCM modules"
+  depends=('hwinfo' 'kcmutils' 'kconfigwidgets' 'mcp-common' 'ttf-comfortaa')
+  provides=('msm_mhwd.so' 'mcp_langpack.so' 'mcp_kernel.so')
+  conflicts=('manjaro-settings-manager-kcm' 'manjaro-settings-manager-notifier'
+             'manjaro-settings-manager-knotifier')
+
+#  DESTDIR="$pkgdir" cmake --install "build/$pkgname"
+
+  install -d "$pkgdir"/usr/{lib/qt,share}
+  cp -r "$srcdir/kcm/plugins" "$pkgdir/usr/lib/qt/"
+  cp -r "$srcdir"/kcm/{kpackage,kservices5} "$pkgdir/usr/share/"
+
+  install -Dm644 "$srcdir/msm-ng/$pkgname/manjaro-category.desktop" -t \
+    "$pkgdir/usr/share/systemsettings/categories/"
+}
+
+#package_mcp-gtk() {
+#  pkgdesc="Manjaro Control Panel Gtk GUI"
+#  depends=('gtkmm3' 'libmcp' 'mcp-common')
+#  conflicts=('msm-ng-gtk' 'manjaro-settings-manager'
+#              'manjaro-settings-manager-notifier')
+#  replaces=('msm-ng-gtk')
+
+#  DESTDIR="$pkgdir" cmake --install "build/$pkgname"
+#}
