@@ -1,0 +1,51 @@
+# Maintainer: Mark Wagie <mark[at]manjaro[dot]org>
+# Contributor: Helmut Stult
+
+pkgname=needrestart
+pkgver=3.11
+pkgrel=3
+pkgdesc="Restart daemons after kernel, library and CPU microcode updates."
+arch=('any')
+url="https://github.com/liske/needrestart"
+license=('GPL-2.0-or-later')
+depends=(
+  'perl-libintl-perl'
+  'perl-module-find'
+  'perl-module-scandeps'
+  'perl-proc-processtable'
+  'perl-sort-naturally'
+  'perl-term-readkey'
+)
+makedepends=('git')
+optdepends=(
+  'iucode-tool: for outdated Intel microcode detection'
+  'libnotify: notify a user session via dbus'
+)
+backup=("etc/$pkgname/$pkgname.conf"
+        "etc/$pkgname/notify.conf")
+source=("git+https://github.com/liske/needrestart.git#tag=v$pkgver"
+        "$pkgname.hook")
+sha256sums=('21908c93cfd95364ba05e6e40a7bdde84771ef900619cb2dc466caf20d658fd7'
+            'b2ba87c931950d5d0a089de0626e964ed3a95cc281a21e0dfdbc16e01ea1dec7')
+
+prepare() {
+  cd "$pkgname"
+  find . -type f -exec sed -i 's|usr/sbin|usr/bin|' {} \;
+  sed -i 's|sbin/init|bin/init|g' "$pkgname"
+}
+
+build() {
+  cd "$pkgname"
+  unset PERL5LIB PERL_LOCAL_LIB_ROOT PERL_MB_OPT PERL_MM_OPT
+  export PERL_MM_USE_DEFAULT=1 PERL_AUTOINSTALL=--skipdeps
+  make
+}
+
+package() {
+  cd "$pkgname"
+  unset PERL5LIB PERL_LOCAL_LIB_ROOT PERL_MB_OPT PERL_MM_OPT
+  make DESTDIR="$pkgdir" install
+
+  install -Dm644 "man/$pkgname.1" -t "$pkgdir/usr/share/man/man1/"
+  install -Dm644 "$srcdir/$pkgname.hook" -t "$pkgdir/usr/share/lipalpm/hooks/"
+}
