@@ -1,0 +1,30 @@
+_pkgname=libinput-gestures
+
+post_install() {
+  echo -ne "\e[34;1m"
+  echo "=== INSTALLATION NOTES for $_pkgname ==="
+  echo -ne "\e[39;1m"
+  echo "A user must be a member of the input group, i.e. run:"
+  echo "   sudo gpasswd -a \$USER input"
+  echo "To set up the application as a systemd user service::"
+  echo "   $_pkgname-setup service"
+  echo "Or instead, to set up the application using your DE"
+  echo "   $_pkgname-setup destkop"
+  echo "Enable the app to start automatically in the background when you log in with::"
+  echo "   $_pkgname-setup autostart"
+  echo "Start the application immediately in the background:"
+  echo "   $_pkgname-setup start"
+  echo "Configuration files are at:"
+  echo "   /etc/$_pkgname.conf (system wide default)"
+  echo "   \$HOME/.config/$_pkgname.conf (optional per user)"
+  echo -ne "\e[0m"
+}
+
+post_upgrade() {
+  echo -ne "\e[34;1m"
+  echo "=== UPGRADE NOTES for $_pkgname ==="
+  echo -ne "\e[39;1m"
+  echo "A user should restart $_pkgname, i.e. run:"
+  echo "   $_pkgname-setup restart"
+  echo -ne "\e[0m"
+}
