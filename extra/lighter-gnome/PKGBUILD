@@ -1,0 +1,22 @@
+# Maintainer: Matti Hyttinen <Chrysostomus @ forum.manjaro.org>
+
+pkgname=lighter-gnome
+pkgver=20211216
+pkgrel=1
+pkgdesc="Desktop files to disable some gnome-settings-daemon components"
+arch=('any')
+url="https://github.com/Chrysostomus/lighter-gnome"
+license=('MIT')
+makedepends=('git')
+source=("git+https://github.com/Chrysostomus/lighter-gnome.git")
+sha256sums=('SKIP')
+
+pkgver() {
+  date +%Y%m%d
+}
+
+package () {
+  cd "$srcdir/$pkgname"
+  install -d "$pkgdir/etc/skel/.config/"
+  cp -r autostart "$pkgdir/etc/skel/.config/"
+}
