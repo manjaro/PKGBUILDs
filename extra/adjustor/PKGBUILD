@@ -1,0 +1,24 @@
+# Maintainer: Antheas Kapenekakis <aur at antheas dot dev>
+pkgname=adjustor
+pkgver=3.4.5
+pkgrel=1
+pkgdesc='Adjustor, a userspace program for managing the TDP of handheld devices.'
+arch=('x86_64')
+url='https://github.com/hhd-dev/adjustor'
+license=('GPL-3.0-or-later')
+depends=('python' 'python-rich' 'python-pyroute2' 'python-fuse' 'python-gobject')
+provides=('adjustor')
+optdepends=('hhd: adds adjustor to the hhd ui.' 'acpi_call: required for setting TDP (may be provided as a kernel patch).')
+makedepends=('python-'{'build','installer','setuptools','wheel'} 'fuse')
+source=("https://pypi.python.org/packages/source/a/adjustor/adjustor-${pkgver}.tar.gz")
+sha512sums=('286f62c6f0e63f1ac0fa95e81313a1246073caf5360d17432ee239f16539eeb05eab3af5c62bf0e1c7135aba4d21ae5ee7a5db234c4b530387a3b9b1bd9e6968')
+
+build() {
+  cd "adjustor-$pkgver"
+  python -m build --wheel --no-isolation
+}
+
+package() {
+  cd "adjustor-$pkgver"
+  python -m installer --destdir="$pkgdir" dist/*.whl
+}
