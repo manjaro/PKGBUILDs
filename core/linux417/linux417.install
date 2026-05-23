@@ -1,0 +1,20 @@
+eol() {
+  echo ">>> NOTE, 4.17.19 is the last release of the 4.17.y kernel."
+  echo "    It is now end-of-life."
+  echo "    "
+  echo "    It is recommend to move on to linux418-series."
+  echo "    Use followed cmd to do that: 'sudo mhwd-kernel -i linux418'"
+  echo "    "
+}
+
+post_upgrade() {
+  eol
+  if findmnt --fstab -uno SOURCE /boot &>/dev/null && ! mountpoint -q /boot; then
+    echo "WARNING: /boot appears to be a separate partition but is not mounted."
+  fi
+}
+
+post_remove() {
+  # also remove the compat symlinks
+  rm -f boot/initramfs-%BASEKERNEL%-%ARCH%*.img
+}
