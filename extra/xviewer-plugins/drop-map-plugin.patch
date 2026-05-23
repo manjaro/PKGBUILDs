@@ -1,0 +1,25 @@
+diff --unified --recursive --text a/meson.build b/meson.build
+--- a/meson.build	2025-11-21 07:21:27.000000000 -0700
++++ b/meson.build	2026-01-04 13:32:27.144556658 -0700
+@@ -24,10 +24,6 @@
+ plugin_libdir =  prefix / 'lib' / 'xviewer' / 'plugins'
+ plugin_datadir = prefix / datadir / 'xviewer' / 'plugins'
+ 
+-champlain = dependency('champlain-0.12')
+-champlain_gtk = dependency('champlain-gtk-0.12')
+-clutter = dependency('clutter-1.0', version: '>=1.9.4')
+-clutter_gtk = dependency('clutter-gtk-1.0', version: '>=1.1.2')
+ exif = dependency('libexif', version: '>=0.6.16')
+ glib = dependency('glib-2.0', version: '>=2.32.0')
+ gtk = dependency('gtk+-3.0', version: '>=3.3.8')
+diff --unified --recursive --text a/plugins/meson.build b/plugins/meson.build
+--- a/plugins/meson.build	2025-11-21 07:21:27.000000000 -0700
++++ b/plugins/meson.build	2026-01-04 13:31:17.867742684 -0700
+@@ -1,6 +1,6 @@
+ subdir('exif-display')
+ subdir('export-to-folder')
+-subdir('map')
++# subdir('map') # libchamplain dropped to AUR/g" plugins/meson.build
+ # subdir('postr') # 'postr' binary not in Debian repos any more
+ subdir('pythonconsole')
+ subdir('send-by-mail')

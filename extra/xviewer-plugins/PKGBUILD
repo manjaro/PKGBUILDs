@@ -1,0 +1,44 @@
+# Maintainer: Mark Wagie <mark at manjaro dot org>
+# Contributor: Bernhard Landauer <bernhard[at]manjaro[dot]org>
+# Contributor: Nate Simon <aurpkg (at natesimon.net)>
+
+pkgname=xviewer-plugins
+pkgver=3.4.3
+pkgrel=2
+pkgdesc="Plugins for xviewer. X-Apps Project."
+arch=('x86_64')
+url="https://github.com/linuxmint/xviewer-plugins"
+license=('GPL-2.0-or-later')
+groups=('x-apps')
+depends=(
+  'cinnamon-desktop'
+  'lcms2'
+  'libexif'
+  'libpeas'
+  'librsvg'
+  'xviewer'
+)
+makedepends=(
+  'gobject-introspection'
+  'meson'
+)
+source=("${pkgname}-${pkgver}.tar.gz::${url}/archive/${pkgver}.tar.gz"
+        'drop-map-plugin.patch')
+sha256sums=('8811ee35312c0e70dd4a62d1bebcb5e93e987f4bff8f4d095c1f7a9751b9f4ce'
+            '199d18c8bb701e34d17ce49b72d4f3b330357ea739c45b4a78dfa26063b5c63a')
+
+prepare() {
+  cd "${pkgname}-${pkgver}"
+
+  # Drop map plugin
+  patch -Np1 -i ../drop-map-plugin.patch
+}
+
+build() {
+  arch-meson "${pkgname}-${pkgver}" build
+  meson compile -C build
+}
+
+package(){
+  meson install -C build --no-rebuild --destdir "$pkgdir"
+}
