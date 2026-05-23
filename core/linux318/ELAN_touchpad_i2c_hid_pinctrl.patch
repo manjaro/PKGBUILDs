@@ -1,0 +1,16 @@
+diff --git a/drivers/pinctrl/intel/pinctrl-intel.c  
+b/drivers/pinctrl/intel/pinctrl-intel.c
+index c19a4c45f7bb..30e3664f1ae5 100644
+--- a/drivers/pinctrl/intel/pinctrl-intel.c
++++ b/drivers/pinctrl/intel/pinctrl-intel.c
+@@ -957,6 +957,10 @@ static void intel_gpio_irq_mask_unmask(struct irq_data *d, bool mask)
+ 		reg = community->regs + community->ie_offset + gpp * 4;
+ 
+ 		raw_spin_lock_irqsave(&pctrl->lock, flags);
++
++		if (!mask)
++		writel(BIT(gpp_offset), community->regs + community->is_offset + gpp * 4);
++
+ 		value = readl(reg);
+ 		if (mask)
+ 			value &= ~BIT(gpp_offset);
