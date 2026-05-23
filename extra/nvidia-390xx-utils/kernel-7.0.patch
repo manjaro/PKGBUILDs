@@ -1,0 +1,87 @@
+From d1fd3bcac1ef7da7cd9624f87d8d6ab2768880f1 Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Joan=20Bruguera=20Mic=C3=B3?= <joanbrugueram@gmail.com>
+Date: Sun, 15 Feb 2026 11:31:28 +0000
+Subject: [PATCH] Tentative fix for NVIDIA 470.256.02 driver for Linux 7.0-rc1
+
+---
+ common/inc/nv-linux.h                |  3 +++
+ nvidia-drm/nvidia-dma-fence-helper.h |  7 ++++---
+ nvidia/nv.c                          | 23 +++++++++++++++--------
+ 3 files changed, 22 insertions(+), 11 deletions(-)
+
+diff --git a/common/inc/nv-linux.h b/common/inc/nv-linux.h
+index e095a89..2ab5074 100644
+--- a/common/inc/nv-linux.h
++++ b/common/inc/nv-linux.h
+@@ -207,6 +207,9 @@ static inline uid_t __kuid_val(kuid_t ui
+ #else
+ #include <linux/tty.h>              /* screen_info                      */
+ #endif
++#if LINUX_VERSION_CODE >= KERNEL_VERSION(7, 0, 0)
++#include <linux/sysfb.h>            /* sysfb_primary_display            */
++#endif
+ 
+ #if !defined(CONFIG_PCI)
+ #warning "Attempting to build driver for a platform with no PCI support!"
+diff --git a/nvidia-drm/nvidia-dma-fence-helper.h b/nvidia-drm/nvidia-dma-fence-helper.h
+index a09ab76..6221bf2 100644
+--- a/nvidia-drm/nvidia-dma-fence-helper.h
++++ b/nvidia-drm/nvidia-dma-fence-helper.h
+@@ -89,11 +89,12 @@ nv_dma_fence_default_wait(nv_dma_fence_t *fence,
+ #endif
+ }
+ 
+-static inline int nv_dma_fence_signal(nv_dma_fence_t *fence) {
++// Rel. commit "dma-buf/dma-fence: Remove return code of signaling-functions" (Philipp Stanner, 1 Dec 2025)
++static inline void nv_dma_fence_signal(nv_dma_fence_t *fence) {
+ #if defined(NV_LINUX_FENCE_H_PRESENT)
+-    return fence_signal(fence);
++    fence_signal(fence);
+ #else
+-    return dma_fence_signal(fence);
++    dma_fence_signal(fence);
+ #endif
+ }
+ 
+diff --git a/nvidia/os-interface.c b/nvidia/os-interface.c
+index 57b5024..ef7dde6 100644
+--- a/nvidia/os-interface.c
++++ b/nvidia/os-interface.c
+@@ -1133,21 +1133,27 @@ void NV_API_CALL os_get_screen_info(
+     // initialization, and then will be set to a value, such as
+     // VIDEO_TYPE_VLFB or VIDEO_TYPE_EFI if an fbdev console is used.
+     //
+-    if (screen_info.orig_video_isVGA <= 1)
++#if LINUX_VERSION_CODE >= KERNEL_VERSION(7, 0, 0)
++    // Rel. commit "sysfb: Replace screen_info with sysfb_primary_display" (Thomas Zimmermann, 26 Nov 2025)
++    const struct screen_info *si = &sysfb_primary_display.screen;
++#else
++    const struct screen_info *si = &screen_info;
++#endif
++    if (si->orig_video_isVGA <= 1)
+     {
+         *pPhysicalAddress = 0;
+         *pFbWidth = *pFbHeight = *pFbDepth = *pFbPitch = 0;
+         return;
+     }
+ 
+-    *pPhysicalAddress = screen_info.lfb_base;
++    *pPhysicalAddress = si->lfb_base;
+ #if defined(VIDEO_CAPABILITY_64BIT_BASE)
+-    *pPhysicalAddress |= (NvU64)screen_info.ext_lfb_base << 32;
++    *pPhysicalAddress |= (NvU64)si->ext_lfb_base << 32;
+ #endif
+-    *pFbWidth = screen_info.lfb_width;
+-    *pFbHeight = screen_info.lfb_height;
+-    *pFbDepth = screen_info.lfb_depth;
+-    *pFbPitch = screen_info.lfb_linelength;
++    *pFbWidth = si->lfb_width;
++    *pFbHeight = si->lfb_height;
++    *pFbDepth = si->lfb_depth;
++    *pFbPitch = si->lfb_linelength;
+ #else
+     *pPhysicalAddress = 0;
+     *pFbWidth = *pFbHeight = *pFbDepth = *pFbPitch = 0;
+-- 
+2.53.0
+
