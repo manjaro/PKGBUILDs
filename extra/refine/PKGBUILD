@@ -1,0 +1,36 @@
+# Maintainer: Mark Wagie <mark at manjaro dot org>
+
+pkgname=refine
+pkgver=0.7.1
+pkgrel=1
+pkgdesc="Tweak various aspects of GNOME"
+arch=('any')
+url="https://tesk.page/refine"
+license=('GPL-3.0-or-later')
+depends=(
+  'gtk4'
+  'libadwaita'
+  'libportal'
+  'libportal-gtk4'
+  'python-gobject'
+)
+makedepends=(
+  'blueprint-compiler'
+  'git'
+  'meson'
+)
+source=("git+https://gitlab.gnome.org/TheEvilSkeleton/Refine.git#tag=$pkgver")
+sha256sums=('e16c8d5f83379f46c1e77a966678984dc746ec832dedc8a0811fd8ff7cacd114')
+
+build() {
+  arch-meson Refine build
+  meson compile -C build
+}
+
+check() {
+  meson test -C build --no-rebuild --print-errorlogs
+}
+
+package() {
+  meson install -C build --no-rebuild --destdir "$pkgdir"
+}
