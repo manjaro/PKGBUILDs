@@ -1,7 +1,0 @@
-[mutter-x11-scaling]
-source = "git"
-git = "https://gitlab.gnome.org/GNOME/mutter.git"
-include_regex = '\d+(\.\d+)*'
-from_pattern = '\.([a-z])'
-to_pattern = '\1'
-

@@ -1,4 +1,0 @@
-[appimagelauncher]
-source = "git"
-git = "https://github.com/TheAssassin/AppImageLauncher.git"
-prefix = "v"

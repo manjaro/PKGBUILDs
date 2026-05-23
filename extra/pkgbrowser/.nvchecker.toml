@@ -1,4 +1,0 @@
-[pkgbrowser]
-source = "git"
-git = "https://codeberg.org/kachelaqa/pkgbrowser.git"
-prefix = "v"

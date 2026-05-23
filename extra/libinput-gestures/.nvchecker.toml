@@ -1,3 +1,0 @@
-[libinput-gestures]
-source = "git"
-git = "https://github.com/bulletmark/libinput-gestures.git"

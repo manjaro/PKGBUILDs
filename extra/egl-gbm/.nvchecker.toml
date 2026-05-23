@@ -1,3 +1,0 @@
-[egl-gbm]
-source = "git"
-git = "https://github.com/NVIDIA/egl-gbm.git"
