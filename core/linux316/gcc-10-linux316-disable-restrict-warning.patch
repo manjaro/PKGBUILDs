@@ -1,0 +1,11 @@
+--- a/Makefile
++++ b/Makefile
+@@ -623,6 +623,7 @@ KBUILD_CFLAGS	+= $(call cc-disable-warni
+ KBUILD_CFLAGS	+= $(call cc-disable-warning, attribute-alias)
+ KBUILD_CFLAGS	+= $(call cc-disable-warning, zero-length-bounds)
+ KBUILD_CFLAGS	+= $(call cc-disable-warning, stringop-overflow)
++KBUILD_CFLAGS	+= $(call cc-disable-warning, restrict)
+ 
+ ifdef CONFIG_CC_OPTIMIZE_FOR_SIZE
+ KBUILD_CFLAGS	+= -Os $(call cc-disable-warning,maybe-uninitialized,)
+ 
