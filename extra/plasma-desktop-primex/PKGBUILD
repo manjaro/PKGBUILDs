@@ -1,0 +1,48 @@
+# Maintainer: Felix Yan <felixonmars@archlinux.org>
+# Maintainer: Antonio Rojas <arojas@archlinux.org>
+# Contributor: Andrea Scarpino <andrea@archlinux.org>
+
+pkgname=plasma-desktop-primex
+pkgver=5.20.5
+pkgrel=2.1
+pkgdesc='KDE Plasma Desktop'
+arch=(x86_64)
+url='https://kde.org/plasma-desktop/'
+license=(LGPL)
+source=("https://download.kde.org/stable/plasma/$pkgver/plasma-desktop-$pkgver.tar.xz"{,.sig}
+        149-5.20.5.patch)
+depends=(polkit-kde-agent libxkbfile kmenuedit systemsettings ksysguard baloo libibus accountsservice)
+optdepends=('plasma-nm: Network manager applet'
+            'powerdevil: power management, suspend and hibernate support'
+            'kscreen: screen management'
+            'ibus: kimpanel IBUS support'
+            'scim: kimpanel SCIM support'
+            'kaccounts-integration: OpenDesktop integration plugin'
+            'fprintd: for fingerprint support')
+provides=(plasma-desktop=$pkgver user-manager knetattach)
+conflicts=(plasma-desktop user-manager knetattach)
+makedepends=(extra-cmake-modules kdoctools xf86-input-evdev xf86-input-synaptics xf86-input-libinput xorg-server-devel
+             scim kdesignerplugin kaccounts-integration intltool fprintd)
+groups=(plasma)
+sha256sums=('bd656e93f44fd528bcd2e0e4c79cbc1adb837369f9a27291bcc5dcd9df2787b9'
+            'SKIP'
+            'cb2f982a57e648c07b5f61a5809eee1c84660b5761f66a4ee2cb6f6ff7c73f97')
+validpgpkeys=('2D1D5B0588357787DE9EE225EC94D18F7F05997E'  # Jonathan Riddell <jr@jriddell.org>
+              '0AAC775BB6437A8D9AF7A3ACFE0784117FBCE11D'  # Bhushan Shah <bshah@kde.org>
+              'D07BD8662C56CB291B316EB2F5675605C74E02CF'  # David Edmundson <davidedmundson@kde.org>
+              '1FA881591C26B276D7A5518EEAAF29B42A678C20') # Marco Martin <notmart@gmail.com>
+
+prepare() {
+  patch -d plasma-desktop-$pkgver -p1 -i ../149-5.20.5.patch # Add fingerprint support  
+}
+
+build() {
+  cmake -B build -S plasma-desktop-$pkgver \
+    -DCMAKE_INSTALL_LIBEXECDIR=lib \
+    -DBUILD_TESTING=OFF
+  cmake --build build
+}
+
+package() {
+  DESTDIR="$pkgdir" cmake --install build
+}
