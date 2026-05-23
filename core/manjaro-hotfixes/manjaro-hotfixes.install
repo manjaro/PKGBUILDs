@@ -1,7 +1,0 @@
-post_upgrade() {
-  echo ""
-  echo "manjaro-hotfixes is obsolete, please remove:"
-  echo ""
-  echo "pamac remove manjaro-hotfixes"
-  echo ""
-}
