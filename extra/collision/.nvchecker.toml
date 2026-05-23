@@ -1,4 +1,0 @@
-[collision]
-source = "git"
-git = "https://github.com/GeopJr/Collision.git"
-prefix = "v"
