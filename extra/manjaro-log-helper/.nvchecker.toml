@@ -1,0 +1,3 @@
+[manjaro-log-helper]
+source = "git"
+git = "https://gitlab.manjaro.org/ste74/manjaro-log-helper.git"
