@@ -1,0 +1,39 @@
+# Maintainer: Mark Wagie <mark[at]manjaro[dot]org>
+# Contributor: Helmut Stult
+# Contributor: Jguer <pkgbuilds at jguer.space>
+
+pkgname=yay
+pkgver=12.5.7
+pkgrel=1
+pkgdesc="Yet another yogurt. Pacman wrapper and AUR helper written in go."
+arch=('x86_64' 'aarch64')
+url="https://github.com/Jguer/yay"
+license=('GPL-3.0-or-later')
+depends=(
+  'git'
+  'pacman'
+)
+makedepends=('go')
+optdepends=(
+  'doas: privilege elevation'
+  'sudo: privilege elevation'
+)
+source=("$pkgname-$pkgver.tar.gz::https://github.com/Jguer/yay/archive/v$pkgver.tar.gz")
+sha256sums=('b483a6b99cba19250e874414a7d55f0d0c518b9c735b7d64dd354b51151bd465')
+
+build() {
+  export GOPATH="$srcdir/gopath"
+  export CGO_CPPFLAGS="${CPPFLAGS}"
+  export CGO_CFLAGS="${CFLAGS}"
+  export CGO_CXXFLAGS="${CXXFLAGS}"
+  export CGO_LDFLAGS="${LDFLAGS}"
+  export CGO_ENABLED=1
+
+  cd "$pkgname-$pkgver"
+  make VERSION="$pkgver" PREFIX='/usr' build
+}
+
+package() {
+  cd "$pkgname-$pkgver"
+  make VERSION="$pkgver" PREFIX='/usr' DESTDIR="$pkgdir" install
+}
