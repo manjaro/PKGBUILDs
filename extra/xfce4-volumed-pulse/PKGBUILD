@@ -1,0 +1,31 @@
+# Maintainer: Mark Wagie <mark at manjaro dot org>
+# Contributor: Bernhard Landauer <bernhard@manjaro.org>
+# Contributor: Maximilien Noal <noal dot maximilien at gmail dot com>
+
+pkgname=xfce4-volumed-pulse
+pkgver=0.2.4
+pkgrel=2
+pkgdesc="Fork of xfce4-volumed with support for PulseAudio"
+arch=('x86_64')
+url="https://gitlab.xfce.org/apps/xfce4-volumed-pulse"
+license=('GPL-3.0-or-later')
+depends=('gtk3' 'libkeybinder3' 'libnotify' 'libpulse' 'xfconf')
+makedepends=('xfce4-dev-tools')
+optdepends=('xfce4-notifyd: for OSD notifications')
+provides=('xfce4-volumed')
+conflicts=('xfce4-volumed')
+source=("$url/-/archive/$pkgname-$pkgver/$pkgname-$pkgname-$pkgver.tar.gz")
+sha256sums=('20b2b91caf050a0613097d00911fe52a068eabeb4a963d7e86c184a3bca92154')
+
+build() {
+  cd "$pkgname-$pkgname-$pkgver"
+  ./autogen.sh --prefix=/usr --sysconfdir=/etc \
+               --libexecdir=/usr/lib \
+               --localstatedir=/var
+  make
+}
+
+package() {
+  cd "$pkgname-$pkgname-$pkgver"
+  make DESTDIR="$pkgdir" install
+}
