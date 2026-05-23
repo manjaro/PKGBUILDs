@@ -1,0 +1,3 @@
+[bootsplash-manager]
+source = "git"
+git = "https://github.com/parov0z/bootsplash-manager.git"
