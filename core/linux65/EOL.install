@@ -1,0 +1,16 @@
+eol() {
+  echo ">>> NOTE, 6.5.13 is the last maintenance release of the 6.5 kernel series."
+  echo "    This kernel is now marked 'End Of Life' (EOL)."
+  echo "    "
+  echo "    It is recommend to switch to the newer linux66 series:"
+  echo "    'sudo mhwd-kernel -i linux66'"
+  echo "    "
+}
+
+post_upgrade() {
+  eol
+}
+
+post_install() {
+  eol
+}
