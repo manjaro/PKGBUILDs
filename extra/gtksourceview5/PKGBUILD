@@ -1,0 +1,36 @@
+# Maintainer: Mark Wagie <mark at manjaro dot org>
+
+pkgname=gtksourceview5
+pkgver=5.4.0
+pkgrel=0
+pkgdesc='A text widget adding syntax highlighting and more to GNOME'
+url="https://gitlab.gnome.org/GNOME/gtksourceview"
+license=('LGPL')
+arch=('x86_64')
+depends=('gtk4')
+makedepends=('git' 'gi-docgen' 'gobject-introspection' 'meson' 'vala')
+checkdepends=('xorg-server-xvfb')
+changelog="$pkgname-NEWS"
+_commit=785a794811bc48505fa1c2c7b970ca2203cf759a
+source=("git+https://gitlab.gnome.org/GNOME/gtksourceview.git#commit=$_commit")
+sha256sums=('SKIP')
+
+pkgver() {
+  cd "$srcdir/gtksourceview"
+  git describe --tags | sed 's/-/+/g'
+}
+
+build() {
+  arch-meson gtksourceview build
+  meson compile -C build
+}
+
+check() {
+  dbus-run-session xvfb-run \
+    -s '-screen 0 1920x1080x24 -nolisten local' \
+    meson test -C build --print-errorlogs
+}
+
+package() {
+  meson install -C build --destdir "$pkgdir"
+}
