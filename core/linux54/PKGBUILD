@@ -1,0 +1,264 @@
+# Maintainer: Philip Müller <philm[at]manjaro[dot]org>
+# Maintainer: Bernhard Landauer <bernhard@manjaro.org>
+# Arch credits:
+# Tobias Powalowski <tpowa@archlinux.org>
+# Thomas Baechler <thomas@archlinux.org>
+
+pkgbase=linux54
+pkgname=('linux54' 'linux54-headers')
+_kernelname=-MANJARO
+_basekernel=5.4
+_basever=54
+_aufs=20210906
+pkgver=5.4.302
+pkgrel=1
+arch=('x86_64')
+url="https://www.kernel.org/"
+license=('GPL2')
+makedepends=('bc'
+    'docbook-xsl'
+    'libelf'
+    'pahole'
+    'git'
+    'inetutils'
+    'kmod'
+    'xmlto'
+    'cpio'
+    'perl'
+    'tar'
+    'xz')
+options=('!strip')
+install="$pkgbase.install"
+source=("https://www.kernel.org/pub/linux/kernel/v5.x/linux-${_basekernel}.tar.xz"
+        "https://www.kernel.org/pub/linux/kernel/v5.x/patch-${pkgver}.xz"
+        # the main kernel config files
+        'config' 'config.aufs'
+        # Upstream Patches
+        # https://lore.kernel.org/all/fb4cce81-1e36-4887-a1e0-0cfd1a26693e@googlemail.com/
+        'linux-5.4.292-std-gnu11.patch'
+        # AUFS Patches
+        "aufs5.4-${_aufs}.patch"
+        'aufs5-base.patch'
+        'aufs5-kbuild.patch'
+        'aufs5-loopback.patch'
+        'aufs5-mmap.patch'
+        'aufs5-standalone.patch'
+        'tmpfs-idr.patch'
+        'vfs-ino.patch'
+        # ARCH Patches
+        '0001-ZEN-Add-sysctl-and-CONFIG-to-disallow-unprivileged-CLONE_NEWUSER.patch'
+        # MANJARO Patches
+        '0101-i2c-nuvoton-nc677x-hwmon-driver.patch'
+        '0102-iomap-iomap_bmap-should-accept-unwritten-maps.patch'
+        '0103-futex.patch'
+        # Lenovo P50 multiple fans
+        '0005-thinkpad_acpi_dual_fan_control.patch::https://github.com/dvhart/linux-pdx86/commit/26c16f9d956f269bbc32e034e3ec11c4831137de.patch'
+         # Lenovo + AMD
+        '0303-pinctrl-amd.patch'
+        # other patches
+        '0601-drm-i915-save-AUD_FREQ_CNTRL-state-at-audio-domain-suspend.patch'
+        '0602-drm-i915-Fix-audio-power-up-sequence-for-gen10-display.patch'
+        '0603-drm-i915-extend-audio-CDCLK-2-BCLK-constraint-to-more-platforms.patch'
+        '0604-drm-i915-limit-audio-CDCLK-constraint-back-to-GLK-only.patch'
+        'drm-amdgpu-add-dc-feature-mask-to-disable-fractional-pwm.patch'
+        'iwlwifi-pcie-restore-support-for-Killer-Qu-C0-NICs.patch'
+        # Fix pahole 1.24 issue
+        'bpf-add-skip_encoding_btf_enum64-option-to-pahole.patch'
+        'revert-drm-i915-don-t-use-bar-mappings-for-ring-buffers-with-llc.patch')
+sha256sums=('bf338980b1670bca287f9994b7441c2361907635879169c64ae78364efc5f491'
+            'c42358b8b729639cbde757ff03aed797717ba702345091400efdf7089c4a7c0d'
+            '95ff713b0501b0ec44ec4dc44a1447ecf2937636f31c877340894214c9a97e32'
+            'b44d81446d8b53d5637287c30ae3eb64cae0078c3fbc45fcf1081dd6699818b5'
+            'ec4184c154616aca4dc3ad638e753853723f5121e8f129645c8f241bbab63d10'
+            '36d78b036b9d63963acc86b8793c3cf298149cfdd31ced60d06451791b594479'
+            '0bcc9db1679ff1ee832aa4286854239f23d175ce557735e891268ed379f72258'
+            'b7313d393e1909bbc245c5b565bd88f84b6238aa92c9db477c1bb83d7fb3fb72'
+            '8bb37ae88072b815ebe3ac1a8dea0f2268fabcb7afb3adb98e84490003401892'
+            'cc2a577f7055830cd024e5eeca6cd5552bb0700f9610c494c6b81e2069a418ec'
+            'a95fafea4e0bd49ad61d610c177eba4c2370f2697d2677ed2b518eb7d57bdbad'
+            '101ac92871078a1e72320cd0d7432e0a44e28c50864b2cd46ae57a026e021387'
+            '9087b14760b203fe6939baccbb7d59ccf256e71f20b5355326702bc890de4ed8'
+            '7685d526bbdbfa795986591a70071c960ff572f56d3501774861728a9df8664c'
+            '7823d7488f42bc4ed7dfae6d1014dbde679d8b862c9a3697a39ba0dae5918978'
+            '95745075edd597caa92b369cfbcd11a04c9e3c88c0c987c70114924e1e01df5c'
+            '78dde51123a21ec5efe9c420b309d03263001dafd8684f71c167f02e3f504f9e'
+            'ec31bf16d63e640bb0b782aa0bb1f371e7659ef82b401c8ce352a59af4361719'
+            '427fd41ac742110d413f01daba66d5cd023b8e63fdc63242fcc96f589e66867f'
+            'e2084feabc3abeed37579ff515c367014356a652b85794b1612fea4daabe85d3'
+            '988ffbb96d85564a9d96145e5973339a8f78ae95d919efb2ee7bb50f7a8e8fc9'
+            '5257159e20a5fcb102a3b3ee6de33882a9e132e7f1d4345b8730effdd0240bb6'
+            '763cd8e7d5b4a5c24f7a82f24c64ec5503ea5c81dfb42fa74150136c0ca066fd'
+            'cba63c224af57d6b9432bb5f507121148d02b313c5f87c55504f49632a3a6062'
+            'fcb9e515bf0816db05446fd8ced7468756bea3cf01b060504bace41b2e7f5f74'
+            '49c0517c8b36ec50b072a7c2a10a773ab5b2a371a2e62f9ffb3ea0cad5d39660'
+            '1ed4983378908612c8d7b27fd81b2364eda3a18e46f2fedf9802ecf09c9e84cc')
+
+
+prepare() {
+  cd "linux-${_basekernel}"
+
+  # add upstream patch
+  msg "add upstream patch"
+  patch -p1 -i "../patch-${pkgver}"
+
+  local src
+  for src in "${source[@]}"; do
+      src="${src%%::*}"
+      src="${src##*/}"
+      [[ $src = *.patch ]] || continue
+      msg2 "Applying patch: $src..."
+      patch -Np1 < "../$src"
+  done
+
+  msg2 "add config.aufs to config"
+  cat "../config" > ./.config
+
+  cat "../config.aufs" >> ./.config
+
+  if [ "${_kernelname}" != "" ]; then
+    sed -i "s|CONFIG_LOCALVERSION=.*|CONFIG_LOCALVERSION=\"${_kernelname}\"|g" ./.config
+    sed -i "s|CONFIG_LOCALVERSION_AUTO=.*|CONFIG_LOCALVERSION_AUTO=n|" ./.config
+  fi
+
+  msg "set extraversion to pkgrel"
+  sed -ri "s|^(EXTRAVERSION =).*|\1 -${pkgrel}|" Makefile
+
+  msg "don't run depmod on 'make install'"
+  # We'll do this ourselves in packaging
+  sed -i '2iexit 0' scripts/depmod.sh
+
+  msg "get kernel version"
+  make prepare
+
+  msg "rewrite configuration"
+  yes "" | make config >/dev/null
+}
+
+build() {
+  cd "linux-${_basekernel}"
+
+  msg "build"
+  make ${MAKEFLAGS} LOCALVERSION= bzImage modules
+}
+
+package_linux54() {
+  pkgdesc="The ${pkgbase/linux/Linux} kernel and modules"
+  depends=(
+    'coreutils'
+    'initramfs'
+    'kmod'
+  )
+  optdepends=(
+    'linux-firmware: firmware images needed for some devices'
+    'scx-scheds: to use sched-ext schedulers'
+    'wireless-regdb: to set the correct wireless channels of your country'
+  )
+  provides=("linux=${pkgver}" VIRTUALBOX-GUEST-MODULES)
+
+  cd "linux-${_basekernel}"
+
+  # get kernel version
+  _kernver="$(make LOCALVERSION= kernelrelease)"
+
+  mkdir -p "${pkgdir}"/{boot,usr/lib/modules}
+  make LOCALVERSION= INSTALL_MOD_PATH="${pkgdir}/usr" INSTALL_MOD_STRIP=1 modules_install
+
+  # systemd expects to find the kernel here to allow hibernation
+  # https://github.com/systemd/systemd/commit/edda44605f06a41fb86b7ab8128dcf99161d2344
+  cp arch/x86/boot/bzImage "${pkgdir}/usr/lib/modules/${_kernver}/vmlinuz"
+
+  # Used by mkinitcpio to name the kernel
+  echo "${pkgbase}" | install -Dm644 /dev/stdin "${pkgdir}/usr/lib/modules/${_kernver}/pkgbase"
+  echo "${_basekernel}-${CARCH}" | install -Dm644 /dev/stdin "${pkgdir}/usr/lib/modules/${_kernver}/kernelbase"
+
+  # add kernel version
+  echo "${pkgver}-${pkgrel}-MANJARO x64" > "${pkgdir}/boot/${pkgbase}-${CARCH}.kver"
+
+  # remove build and source links
+  rm "${pkgdir}"/usr/lib/modules/${_kernver}/{source,build}
+
+  # now we call depmod...
+  depmod -b "${pkgdir}/usr" -F System.map "${_kernver}"
+}
+
+package_linux54-headers() {
+  pkgdesc="Header files and scripts for building modules for ${pkgbase/linux/Linux} kernel"
+  depends=('gawk' 'python' 'libelf' 'pahole')
+  provides=("linux-headers=$pkgver")
+
+  cd "linux-${_basekernel}"
+  local _builddir="${pkgdir}/usr/lib/modules/${_kernver}/build"
+
+  # add real version for building modules and running depmod from hook
+  echo "${_kernver}" |
+    install -Dm644 /dev/stdin "${_builddir}/version"
+
+  install -Dt "${_builddir}" -m644 Makefile .config Module.symvers
+  install -Dt "${_builddir}/kernel" -m644 kernel/Makefile
+  install -Dt "${_builddir}" -m644 vmlinux
+
+  mkdir "${_builddir}/.tmp_versions"
+
+  cp -t "${_builddir}" -a include scripts
+
+  install -Dt "${_builddir}/arch/x86" -m644 "arch/x86/Makefile"
+  install -Dt "${_builddir}/arch/x86/kernel" -m644 "arch/x86/kernel/asm-offsets.s"
+
+  cp -t "${_builddir}/arch/x86" -a "arch/x86/include"
+
+  install -Dt "${_builddir}/drivers/md" -m644 drivers/md/*.h
+  install -Dt "${_builddir}/net/mac80211" -m644 net/mac80211/*.h
+
+  # https://bugs.archlinux.org/task/13146
+  install -Dt "${_builddir}/drivers/media/i2c" -m644 drivers/media/i2c/msp3400-driver.h
+
+  # https://bugs.archlinux.org/task/20402
+  install -Dt "${_builddir}/drivers/media/usb/dvb-usb" -m644 drivers/media/usb/dvb-usb/*.h
+  install -Dt "${_builddir}/drivers/media/dvb-frontends" -m644 drivers/media/dvb-frontends/*.h
+  install -Dt "${_builddir}/drivers/media/tuners" -m644 drivers/media/tuners/*.h
+
+  # https://bugs.archlinux.org/task/71392
+  install -Dt "${_builddir}/drivers/iio/common/hid-sensors" -m644 drivers/iio/common/hid-sensors/*.h
+
+  # add xfs and shmem for aufs building
+  mkdir -p "${_builddir}"/{fs/xfs,mm}
+
+  # copy in Kconfig files
+  find . -name Kconfig\* -exec install -Dm644 {} "${_builddir}/{}" \;
+
+  # add objtool for external module building and enabled VALIDATION_STACK option
+  install -Dt "${_builddir}/tools/objtool" tools/objtool/objtool
+
+  # remove unneeded architectures
+  local _arch
+  for _arch in "${_builddir}"/arch/*/; do
+    [[ ${_arch} == */x86/ ]] && continue
+    rm -r "${_arch}"
+  done
+
+  # remove documentation files
+  rm -r "${_builddir}/Documentation"
+
+  # strip scripts directory
+  local file
+  while read -rd '' file; do
+    case "$(file -bi "$file")" in
+      application/x-sharedlib\;*)      # Libraries (.so)
+        strip $STRIP_SHARED "$file" ;;
+      application/x-archive\;*)        # Libraries (.a)
+        strip $STRIP_STATIC "$file" ;;
+      application/x-executable\;*)     # Binaries
+        strip $STRIP_BINARIES "$file" ;;
+      application/x-pie-executable\;*) # Relocatable binaries
+        strip $STRIP_SHARED "$file" ;;
+    esac
+  done < <(find "${_builddir}" -type f -perm -u+x ! -name vmlinux -print0 2>/dev/null)
+  strip $STRIP_STATIC "${_builddir}/vmlinux"
+
+  echo "Adding symlink..."
+  mkdir -p "${pkgdir}/usr/src"
+  ln -sr "${_builddir}" "${pkgdir}/usr/src/${pkgbase}"
+
+  # remove unwanted files
+  find ${_builddir} -name '*.orig' -delete
+}
