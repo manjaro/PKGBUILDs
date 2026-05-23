@@ -1,0 +1,17 @@
+eol() {
+  echo ">>> NOTE, 6.11.11 is the last maintenance release of the 6.11 kernel series."
+  echo "    This kernel is now marked 'End Of Life' (EOL)."
+  echo "    "
+  echo "    It is recommend to switch to the newer linux612 series:"
+  echo "    'sudo mhwd-kernel -i linux612'"
+  echo "    "
+}
+
+post_upgrade() {
+  eol
+}
+
+post_install() {
+  eol
+}
+
