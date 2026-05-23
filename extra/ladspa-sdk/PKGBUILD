@@ -1,0 +1,52 @@
+# Maintainer: Philip Mueller <philm@manjaro.org>
+
+pkgname=ladspa-sdk
+pkgver=1.17
+pkgrel=1
+pkgdesc='Sample tools for linux-audio-dev plugin architecture'
+url='https://salsa.debian.org/multimedia-team/ladspa-sdk'
+arch=('x86_64')
+license=('LGPL2.1+')
+provides=('ladspa-host')
+source=("$url/-/archive/upstream/$pkgver/$pkgname-upstream-$pkgver.tar.gz"
+        "$url/-/raw/debian/$pkgver-1/debian/patches/Allow-passing-FLAGS-to-make.patch"
+        "$url/-/raw/debian/$pkgver-1/debian/patches/Don-t-remove-symbol-table-and-relocation-information-from.patch"
+        "$url/-/raw/debian/$pkgver-1/debian/analyseplugin.1"
+        "$url/-/raw/debian/$pkgver-1/debian/applyplugin.1"
+        "$url/-/raw/debian/$pkgver-1/debian/listplugins.1"
+        "$url/-/raw/debian/$pkgver-1/debian/doc-base"
+        destdir.patch)
+sha256sums=('87658cdffad8d27b4eb879f7c6381483dd50366fa9469fe69fd2d316fd926d70'
+            'f5b033a1ac06201dc1286bfa7c26b6f42b149deff5bdd6da1afbb5a6f34015f4'
+            '56b330f5568e8cd26f7afe2cf41e201452404fa57cdb99786bb2b7c4dc29ba5b'
+            'f311a99fe81915ed91d4bd149d291c719521fa3203a1147d248395f6cac07869'
+            'eb633715e364df272dbdc62b85b3dce8e684f8317e1a0b103101c4b053c7715b'
+            '7446b18d9f4de92ea3ca61a63cd7a754637c649c0aa78e7f59125504c82911bd'
+            '880286dab69323e55210da16b0bab4c7504c90d3fdc667c4abf0dcb71c5ad091'
+            '434b771c91971a7cb6a7badf85a0516759afa7f5fcb56c707fc8dd42200eb3f8')
+depends=('libsndfile' "ladspa=$pkgver")
+
+prepare() {
+	cd $pkgname-upstream-$pkgver
+	patch -p1 -i ../Allow-passing-FLAGS-to-make.patch
+	patch -p1 -i ../Don-t-remove-symbol-table-and-relocation-information-from.patch
+	patch -p1 -i ../destdir.patch
+	mkdir -p {bin,plugins}
+}
+
+build() {
+	cd $pkgname-upstream-$pkgver
+	make -C src
+}
+
+package() {
+	cd $pkgname-upstream-$pkgver
+	make -C src DESTDIR="$pkgdir" install
+	install -Dm644 ../analyseplugin.1 -t $pkgdir/usr/share/man/man1/
+	install -Dm644 ../applyplugin.1 -t $pkgdir/usr/share/man/man1/
+	install -Dm644 ../listplugins.1 -t $pkgdir/usr/share/man/man1/
+	install -Dm644 ../doc-base $pkgdir/usr/share/doc-base/ladspa-sdk.ladspa-sdk
+	mkdir -p $pkgdir/usr/share/doc/ladspa-sdk
+	cp doc/* $pkgdir/usr/share/doc/ladspa-sdk
+	rm $pkgdir/usr/share/doc/ladspa-sdk/COPYING
+}
