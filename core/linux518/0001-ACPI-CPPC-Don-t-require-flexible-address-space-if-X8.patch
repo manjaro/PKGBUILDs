@@ -1,0 +1,54 @@
+From aedb9d91f8d6c15e4230baebf3c2348e149291ed Mon Sep 17 00:00:00 2001
+From: Mario Limonciello <mario.limonciello@amd.com>
+Date: Fri, 15 Jul 2022 10:15:50 -0500
+Subject: [PATCH] ACPI: CPPC: Don't require flexible address space if
+ X86_FEATURE_CPPC is supported
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+commit 0651ab90e4ad ("ACPI: CPPC: Check _OSC for flexible address space") changed
+_CPC probing to require flexible address space to be negotiated for CPPC to work.
+
+However it was observed that this caused a regression for Arek's ROG Zephyrus G15
+GA503QM which previously CPPC worked, but now it stopped working.
+
+To avoid causing a regression waive this failure when the CPU is known to support
+CPPC.
+
+Cc: Pierre Gondois <pierre.gondois@arm.com>
+Link: https://bugzilla.kernel.org/show_bug.cgi?id=216248
+Fixes: 0651ab90e4ad ("ACPI: CPPC: Check _OSC for flexible address space")
+Reported-by: Arek Ruśniak <arek.rusi@gmail.com>
+Signed-off-by: Mario Limonciello <mario.limonciello@amd.com>
+---
+ drivers/acpi/cppc_acpi.c | 6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/acpi/cppc_acpi.c b/drivers/acpi/cppc_acpi.c
+index 6ff1901d7d43..3c6d4ef87be0 100644
+--- a/drivers/acpi/cppc_acpi.c
++++ b/drivers/acpi/cppc_acpi.c
+@@ -782,7 +782,8 @@ int acpi_cppc_processor_probe(struct acpi_processor *pr)
+ 
+ 					if (!osc_cpc_flexible_adr_space_confirmed) {
+ 						pr_debug("Flexible address space capability not supported\n");
+-						goto out_free;
++						if (!cpc_supported_by_cpu())
++							goto out_free;
+ 					}
+ 
+ 					addr = ioremap(gas_t->address, gas_t->bit_width/8);
+@@ -809,7 +810,8 @@ int acpi_cppc_processor_probe(struct acpi_processor *pr)
+ 				}
+ 				if (!osc_cpc_flexible_adr_space_confirmed) {
+ 					pr_debug("Flexible address space capability not supported\n");
+-					goto out_free;
++					if (!cpc_supported_by_cpu())
++						goto out_free;
+ 				}
+ 			} else {
+ 				if (gas_t->space_id != ACPI_ADR_SPACE_FIXED_HARDWARE || !cpc_ffh_supported()) {
+-- 
+2.34.1
+
