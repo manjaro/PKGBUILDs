@@ -1,0 +1,9 @@
+[Trigger]
+Operation = Remove
+Type = Package
+Target = python-pip
+
+[Action]
+Description = Restoring pip for ensurepip
+When = PreTransaction
+Exec = /usr/bin/sed -i 's/^_PIP_VERSION = .*/_PIP_VERSION = "19.0.3"/' /usr/lib/python3.7/ensurepip/__init__.py
