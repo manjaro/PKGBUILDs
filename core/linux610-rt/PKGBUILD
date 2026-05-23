@@ -1,0 +1,294 @@
+# Maintainer: Bernhard Landauer <oberon@manjaro.org
+# Archlinux-Maintainer
+
+pkgbase=linux610-rt
+pkgname=("$pkgbase" "$pkgbase-headers")
+_basekernel=6.10
+_sub=2
+_rtpatchver=rt14
+_basever=${pkgbase//linux}
+_kernelname=-MANJARO
+if [[ "$_sub" == "0" ]]; then
+    _pkgver=${_basekernel}
+else
+    _pkgver=${_basekernel}.${_sub}
+fi
+pkgver=6.10.2_rt14
+pkgrel=5
+arch=('x86_64')
+url="https://www.kernel.org/"
+license=('GPL2')
+makedepends=(bc docbook-xsl libelf pahole python-sphinx git inetutils kmod xmlto cpio perl tar xz)
+options=('!strip')
+source=("$url/pub/linux/kernel/v6.x/linux-${_basekernel}.tar.xz"
+        # rt-config
+        'config.rt'
+        # Upstream Patches
+        # ARCH Patches
+        0101-ZEN_Add_sysctl_and_CONFIG_to_disallow_unprivileged_CLONE_NEWUSER.patch
+        0102-drivers-firmware-skip-simpledrm-if-nvidia-drm.modese.patch
+        0103_default_to_max_ASLR_bits.patch
+        0104_x86-apic_Remove-logical-destination-mode-for-64-bit.patch
+        # Realtek patch
+        0999-patch_realtek.patch
+        # IIO patches
+        0001-iio-imu-bmi323-Use-iio-read_acpi_mount_matrix-helper.patch
+        0001-iio-trigger-allow-devices-to-suspend-resume-theirs-a.patch
+        0002-iio-bmi323-suspend-and-resume-triggering-on-relevant.patch
+        0003-iio-bmi323-peripheral-in-lowest-power-state-on-suspe.patch
+        # ROG ALLY Patches (stable)
+        0001-hid-asus-add-ROG-Ally-X-prod-ID-to-quirk-list.patch
+        0001-platform-x86-amd-pmf-Add-quirk-for-ROG-Ally-X.patch
+        # ROG ALLY Patches (upstream/ally-csee-refactor-and-s2idle-screen)
+        0001-platform-x86-int3472-make-common-part-a-separate-mod.patch
+        0002-Change-line-limit.patch
+        0003-Fix-ROG-ALLY-X-audio.patch
+        0004-platform-x86-asus-wmi-add-support-for-vivobook-fan-p.patch
+        0005-hid-asus-use-hid-for-brightness-control-on-keyboard.patch
+        0006-Input-xpad-add-support-for-ASUS-ROG-RAIKIRI-PRO.patch
+        0007-platform-x86-asus-wmi-add-debug-print-in-more-key-pl.patch
+        0008-platform-x86-asus-wmi-don-t-fail-if-platform_profile.patch
+        0009-platform-x86-asus-wmi-Add-quirk-for-ROG-Ally-X.patch
+        0010-acpi-x86-s2idle-add-support-for-screen-off-and-scree.patch
+        0011-drm-Notify-the-suspend-core-when-displays-are-change.patch
+        0012-acpi-x86-s2idle-Move-screen-off-on-code-into-dedicat.patch
+        0013-acpi-x86-s2idle-Add-ability-to-configure-wakeup-by-A.patch
+        0014-platform-x86-asus-wmi-Refactor-Ally-CSEE-quirks.patch
+        0015-platform-x86-asus-armoury-move-existing-tunings-to-a.patch
+        0016-platform-x86-asus-armoury-add-dgpu-tgp-control.patch
+        0017-platform-x86-asus-armoury-add-apu-mem-control-suppor.patch
+        0018-platform-x86-asus-armoury-add-core-count-control.patch
+        0019-Core-mask-fix.patch
+        0020-asus-wmi-deprecate-bios-features.patch
+        0021-hid-asus-ally-Add-full-gamepad-support.patch
+        0022-platform-x86-amd-pmf-Make-ASUS-GA403-quirk-generic.patch
+        0023-s2idle-wake-on-ac-plugged-only.patch
+        0024-ally-fix-change-wake_on_ac-to-AC-power-only.-Add-err.patch
+        # OrangePi Neo patches
+        0001-OrangePi-Neo-panel-orientation-quirk.patch
+        0001-iio_imu_Add_driver_for_Bosch_BMI260_IMU.patch
+        # OXP Sensors
+        0001-Add-support-for-multiple-new-devices.patch
+        # RT Patch
+        "$url/pub/linux/kernel/projects/rt/${_basekernel}/patch-${_pkgver}-${_rtpatchver}.patch.xz")
+sha256sums=('774698422ee54c5f1e704456f37c65c06b51b4e9a8b0866f34580d86fef8e226'
+            '22be466e7f437e8fc21f7bfc9b16818fa30ce83d33aea2085278df085643ea43'
+            '888a89ec67433ddfd71ba187a7356ca60270dbe51d6df7211e3930f13121ba8c'
+            '934bc233684c45860251bb75433d671b23fa784c891ab3a1ef10d5bc761156b6'
+            '6400a06e6eb3a24b650bc3b1bba9626622f132697987f718e7ed6a5b8c0317bc'
+            '1b24220aff55e9d997961b88cf2e422dd66bf0cc399d9153b76bd570ed610b93'
+            'a99b684fe5bc7fdacc6f5b1f2b6593672fc5d1e676c4de03ec29723747fc574b'
+            'de29f19ed891fce121184fd1b21a6892e476a25ae7fdc69574e7de34eafa5f06'
+            '02d617ae99e6a6a159dfc7299308c765fb66764148c2c549d40191646c5e2dd4'
+            '65b7b008b392693974a319a8a1ab5c1a3492474faf3cb7c45d94a1f4811e0820'
+            'd99d7db369b7c4f31b21002914ba1135ecf344b3fb30a01be7d444ead43dd9f9'
+            '9d78eddf8d1204d340549170a2959671f91afb6f35847023b046f468205bcb2d'
+            '6497c6f05d43b2dc30ba08833b9278bc48cdcde697ce7eaf4379547b7195d1e4'
+            'a428ad543eeeef0269ee73b2f426f1191989d22eb105fdd375d7f3cf35ec7673'
+            '4d0e229147e6f60f84d3d98c75dd4ff0adf103104b1c861428ce36dc14a694bb'
+            '8390d991367a5b60d00fc4ee36d59b2db92eda2948b6df01beda495a95d50bbd'
+            '2826702a4dc2217f3446062268186187d99e29f58b9b8a38ba30b8e93cee06db'
+            '4d108ce0004f344cb5e95a613e4e33a1d8b24ce7514d4631da2188260f751ea2'
+            '62ac8245d8c9a8a5866b9495b10e3f0ec8cc69bd68f50458a805242c406f7423'
+            '809e04ee3b1abe92f62656afa6194adb117487db86d5be7264d092c5e3a3a9a6'
+            'c425a70cdf95599756d4471f6c3a6c538752a42ba9a58ecbe3125a1f7676fb99'
+            '4c9ad1261d8efc547823588c5b70347a120195953662d7ccb4fea8717685da66'
+            'c54145a32edea29cf080d4e8a91e02d83ada4307448a69140907dda55625353e'
+            '1145b1c3e0c32b9dd9ab05aa47b9db938561b4af333a09b93c24262171146b37'
+            '1a2b05fd1d64106be48c7a9f72d21e828c8c617909551f35f36220415cfe1693'
+            'db3e8c4bafb31a4fc8130d398560679a2165e5aaf1325eb037042262e0d29769'
+            '1df7bde2e3b070e2c750c20e3b60b8683ca806739a011269c4ac5708611c9892'
+            '28b73a81bc56b15822a3a8e10a39c52249f6012fc1294ce86a61f37a3aa3432c'
+            '223b020419391fabe7cc060977de1ff574e672064af473607920d6c19486d5f1'
+            'defe96e02489b721ad0becbcbc10e542c66c2a3501f28c313cc0fc9dd4311de4'
+            '190a009603c77de6050b33940703e889430ed99f852edd8405542081aa6371cf'
+            'dc32f01016c78d02b06475172c18b407800f6458ca350b29ce8579983138bb5d'
+            '5845c23be1a2d57a22985897c087335d54202b21f5c9f1669c1d4cb7d9831c3b'
+            '72a48429e9c3405f27e04691d3ab8a30cc1f2ad94e962032b2ea017e956f0d04'
+            '71f08b2e0864c25ebe3afc36276dafac223cfb01569accf96fc6f52b03b9e221'
+            '8fc6c7dedc12ca8942589aed1f8ff0fc382bcfdcf87e9a96976497a2e6c95a3f'
+            '6d7b7026c4ea9486b47ffaf75ba8b8d060c24bb01024fa9d39a0dfca9a794e02'
+            'aa2ff6edca0177b864868fdc2752d3a0eaaf5b801bd17e5c59dfd78999226d83'
+            'e58b6631da6dcc302984c30882276026a449228833cfb01d157a85ff1064080e'
+            '47adc135f2d6381d461c7f279d2ae57984eaa711469ece9d9cce9893817360a3'
+            'a90ea65c4be4fd5432900df6d84806e9f5a4b9a2874f063f9df671db5e8df09a'
+            'f3166b9b9f6a7dbae9ed7e92e373c8ddb672c5bd2da3991207aa30f52ceda7fa')
+if [[ ! "$_sub" == "0" ]]; then
+  source+=("$url/pub/linux/kernel/v6.x/patch-${_pkgver}.xz")
+fi
+validpgpkeys=('64254695FFF0AA4466CC19E67B96E8162A8CF5D1' # Sebastian Andrzej Siewior
+            '4FE5E3262872E4CC')
+pkgver() {
+  echo "${_pkgver}_${_rtpatchver}"
+}
+
+prepare() {
+  cd "linux-${_basekernel}"
+
+if [[ ! "$_sub" == "0" ]]; then
+  # add upstream patch
+  patch -p1 -i "../patch-${_pkgver}"
+fi
+
+  # Add RT patch
+  msg "realtime patch..."
+  patch -p1 -i "../patch-${_pkgver}-${_rtpatchver}.patch"
+
+ local src
+  for src in "${source[@]}"; do
+      src="${src%%::*}"
+      src="${src##*/}"
+      [[ $src = *.patch ]] || continue
+      msg2 "Applying patch: $src..."
+      patch -Np1 < "../$src"
+  done
+
+  cat '../config.rt' > ./.config
+
+  if [ "${_kernelname}" != "" ]; then
+    sed -i "s|CONFIG_LOCALVERSION=.*|CONFIG_LOCALVERSION=\"${_kernelname}\"|g" ./.config
+    sed -i "s|CONFIG_LOCALVERSION_AUTO=.*|CONFIG_LOCALVERSION_AUTO=n|" ./.config
+  fi
+
+  # set extraversion to pkgrel
+  sed -ri "s|^(EXTRAVERSION =).*|\1 -${pkgrel}|" Makefile
+
+  # don't run depmod on 'make install'. We'll do this ourselves in packaging
+  sed -i '2iexit 0' scripts/depmod.sh
+
+  # get kernel version
+  make prepare
+
+  # rewrite configuration
+  yes "" | make config >/dev/null
+}
+
+build() {
+  cd "linux-${_basekernel}"
+
+  # build!
+  make ${MAKEFLAGS} LOCALVERSION= bzImage modules
+}
+
+package_linux610-rt() {
+  pkgdesc="The ${pkgbase/linux/Linux} kernel and modules"
+  depends=('coreutils' 'initramfs' 'kmod')
+  optdepends=('wireless-regdb: to set the correct wireless channels of your country'
+              'linux-firmware: firmware images needed for some devices')
+  provides=("linux=${pkgver}" VIRTUALBOX-GUEST-MODULES WIREGUARD-MODULE KSMBD-MODULE)
+  replaces=('linux515-rt' 'linux60-rt')
+
+  cd "linux-${_basekernel}"
+
+  # get kernel version
+  _kernver="$(make LOCALVERSION= kernelrelease)"
+
+  mkdir -p "${pkgdir}"/{boot,usr/lib/modules}
+  make LOCALVERSION= INSTALL_MOD_PATH="${pkgdir}/usr" INSTALL_MOD_STRIP=1 modules_install
+
+  # systemd expects to find the kernel here to allow hibernation
+  # https://github.com/systemd/systemd/commit/edda44605f06a41fb86b7ab8128dcf99161d2344
+  cp arch/x86/boot/bzImage "${pkgdir}/usr/lib/modules/${_kernver}/vmlinuz"
+
+  # Used by mkinitcpio to name the kernel
+  echo "${pkgbase}" | install -Dm644 /dev/stdin "${pkgdir}/usr/lib/modules/${_kernver}/pkgbase"
+  echo "${_basekernel}-rt-${CARCH}" | install -Dm644 /dev/stdin "${pkgdir}/usr/lib/modules/${_kernver}/kernelbase"
+
+  # add kernel version
+  echo "${_pkgver}-${_rtpatchver}-${pkgrel}-MANJARO x64" > "${pkgdir}/boot/linux-${_basever}-${CARCH}.kver"
+
+  # remove build
+  rm "${pkgdir}"/usr/lib/modules/${_kernver}/build
+
+  # now we call depmod...
+  depmod -b "${pkgdir}/usr" -F System.map "${_kernver}"
+}
+
+package_linux610-rt-headers() {
+  pkgdesc="Header files and scripts for building modules for ${pkgbase/linux/Linux} kernel"
+  depends=('gawk' 'python' 'libelf' 'pahole')
+  provides=("linux-headers=$pkgver")
+  replaces=('linux515-rt-headers' 'linux60-rt-headers')
+
+  cd "linux-${_basekernel}"
+  local _builddir="${pkgdir}/usr/lib/modules/${_kernver}/build"
+
+  # add real version for building modules and running depmod from hook
+  echo "${_kernver}" |
+    install -Dm644 /dev/stdin "${_builddir}"/version
+
+  install -Dt "${_builddir}" -m644 Makefile .config Module.symvers
+  install -Dt "${_builddir}/kernel" -m644 kernel/Makefile
+  install -Dt "${_builddir}" -m644 vmlinux
+
+  mkdir "${_builddir}/.tmp_versions"
+
+  cp -t "${_builddir}" -a include scripts
+
+  install -Dt "${_builddir}/arch/x86" -m644 "arch/x86/Makefile"
+  install -Dt "${_builddir}/arch/x86/kernel" -m644 "arch/x86/kernel/asm-offsets.s"
+
+  cp -t "${_builddir}/arch/x86" -a "arch/x86/include"
+
+  install -Dt "${_builddir}/drivers/md" -m644 drivers/md/*.h
+  install -Dt "${_builddir}/net/mac80211" -m644 net/mac80211/*.h
+
+  # https://bugs.archlinux.org/task/13146
+  install -Dt "${_builddir}/drivers/media/i2c" -m644 drivers/media/i2c/msp3400-driver.h
+
+  # https://bugs.archlinux.org/task/20402
+  install -Dt "${_builddir}/drivers/media/usb/dvb-usb" -m644 drivers/media/usb/dvb-usb/*.h
+  install -Dt "${_builddir}/drivers/media/dvb-frontends" -m644 drivers/media/dvb-frontends/*.h
+  install -Dt "${_builddir}/drivers/media/tuners" -m644 drivers/media/tuners/*.h
+
+  # https://bugs.archlinux.org/task/71392
+  install -Dt "${_builddir}/drivers/iio/common/hid-sensors" -m644 drivers/iio/common/hid-sensors/*.h
+
+  # add xfs and shmem for aufs building
+  mkdir -p "${_builddir}"/{fs/xfs,mm}
+
+  # copy in Kconfig files
+  find . -name Kconfig\* -exec install -Dm644 {} "${_builddir}/{}" \;
+
+  # add objtool for external module building and enabled VALIDATION_STACK option
+  install -Dt "${_builddir}/tools/objtool" tools/objtool/objtool
+
+  # https://forum.manjaro.org/t/90629/39
+  install -Dt "${_builddir}/tools/bpf/resolve_btfids" tools/bpf/resolve_btfids/resolve_btfids
+
+  # remove unneeded architectures
+  local _arch
+  for _arch in "${_builddir}"/arch/*/; do
+    [[ ${_arch} == */x86/ ]] && continue
+    rm -r "${_arch}"
+  done
+
+  # remove documentation files
+  rm -r "${_builddir}/Documentation"
+
+  # strip scripts directory
+  local file
+  while read -rd '' file; do
+    case "$(file -bi "$file")" in
+      application/x-sharedlib\;*)      # Libraries (.so)
+        strip $STRIP_SHARED "$file" ;;
+      application/x-archive\;*)        # Libraries (.a)
+        strip $STRIP_STATIC "$file" ;;
+      application/x-executable\;*)     # Binaries
+        strip $STRIP_BINARIES "$file" ;;
+      application/x-pie-executable\;*) # Relocatable binaries
+        strip $STRIP_SHARED "$file" ;;
+    esac
+  done < <(find "${_builddir}" -type f -perm -u+x ! -name vmlinux -print0 2>/dev/null)
+  strip $STRIP_STATIC "${_builddir}/vmlinux"
+
+  echo "Adding symlink..."
+  mkdir -p "${pkgdir}/usr/src"
+  ln -sr "${_builddir}" "${pkgdir}/usr/src/${pkgbase}"
+
+  # remove unwanted files
+  find ${_builddir} -name '*.orig' -delete
+
+  # Fix permissions
+  chmod -R u=rwX,go=rX "${_builddir}"
+}
