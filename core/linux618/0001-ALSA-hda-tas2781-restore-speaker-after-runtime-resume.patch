@@ -1,0 +1,56 @@
+From: Matheus Carvalho <mtw.nda@hotmail.com>
+Subject: [PATCH] ALSA: hda/tas2781: restore speaker playback after runtime resume
+
+tas2781_runtime_suspend() mutes the speaker amplifier and clears
+playback_started. tas2781_runtime_resume() reloads the DSP program
+but never unmutes. System suspend already keeps playback_started, and
+system resume unmutes when playback was active.
+
+PipeWire keeps the PCM open while the codec is idle, so the playback
+open hook does not run again. After runtime PM the speakers stay
+silent on TAS2781 laptops (Lenovo Legion with ALC287, and the same
+amplifier on other notebooks) until the PCM is closed and reopened.
+HDMI outputs are unaffected because they do not use this amplifier.
+
+Match the system-sleep path: leave playback_started set across runtime
+suspend, and unmute after the program reload if playback was active.
+
+Applies to Linux 6.18 as shipped by Manjaro (linux618), including
+6.18.32 and 6.18.49. The runtime PM functions are unchanged between
+those versions.
+
+Signed-off-by: Matheus Carvalho <mtw.nda@hotmail.com>
+---
+--- a/sound/hda/codecs/side-codecs/tas2781_hda_i2c.c
++++ b/sound/hda/codecs/side-codecs/tas2781_hda_i2c.c
+@@ -742,13 +742,14 @@
+ 
+ 	guard(mutex)(&tas_hda->priv->codec_lock);
+ 
+-	/* The driver powers up the amplifiers at module load time.
+-	 * Stop the playback if it's unused.
++	/*
++	 * Mute while the amplifier is powered down, but keep playback_started.
++	 * System suspend already does this. Clearing the flag here makes runtime
++	 * resume reload the DSP program and leave the speakers silent when
++	 * userspace keeps the PCM open.
+ 	 */
+-	if (tas_hda->priv->playback_started) {
++	if (tas_hda->priv->playback_started)
+ 		tasdevice_tuning_switch(tas_hda->priv, 1);
+-		tas_hda->priv->playback_started = false;
+-	}
+ 
+ 	return 0;
+ }
+@@ -763,6 +764,10 @@
+ 
+ 	tasdevice_prmg_load(tas_hda->priv, tas_hda->priv->cur_prog);
+ 
++	/* Program reload comes back muted. Unmute if playback was active. */
++	if (tas_hda->priv->playback_started)
++		tasdevice_tuning_switch(tas_hda->priv, 0);
++
+ 	return 0;
+ }
+ 
